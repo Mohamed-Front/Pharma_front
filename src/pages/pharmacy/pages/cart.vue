@@ -290,6 +290,7 @@ const removeItem = async (id) => {
         detail: t('cart.removeSuccess'),
         life: 3000,
       });
+       fetchCart()
     } else {
       throw new Error(response.data.message || t('cart.removeError'));
     }
@@ -337,6 +338,7 @@ const incrementQuantity = async (id) => {
       detail: error.message || t('cart.updateError'),
       life: 3000,
     });
+     fetchCart()
     console.error('Error incrementing quantity:', error);
   } finally {
     cartLoading.value[id] = false;
@@ -354,6 +356,7 @@ const decrementQuantity = async (id) => {
       quantity: item.quantity - 1,
     });
     if (response.data.success) {
+
       item.quantity--;
       item.original_price = item.product.price * item.quantity;
       item.total_price = item.original_price - (item.total_discounts || 0);
@@ -364,6 +367,7 @@ const decrementQuantity = async (id) => {
         detail: t('cart.updateSuccess'),
         life: 3000,
       });
+       fetchCart()
     } else {
       throw new Error(response.data.message || t('cart.updateError'));
     }

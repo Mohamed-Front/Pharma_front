@@ -64,6 +64,21 @@ const navigationRoutes = {
         },
       ],
     },
+     {
+      name: 'categories',
+      displayName: 'navigation.categories',
+      meta: {
+        icon: 'inventory'
+      }
+    },
+     {
+      name: 'scientific-structur',
+      displayName: 'navigation.scientific_structur',
+      meta: {
+        icon: 'inventory'
+      }
+    },
+
     {
       name: 'pharmacy-request',
       displayName: 'navigation.pharmacy_request',
@@ -99,13 +114,7 @@ const navigationRoutes = {
         icon: 'dashboard'
       }
     },
-     {
-      name: 'categories',
-      displayName: 'navigation.categories',
-      meta: {
-        icon: 'inventory'
-      }
-    },
+
       {
       name: 'products',
       displayName: 'navigation.products',
@@ -142,13 +151,6 @@ const navigationRoutes = {
       }
     },
 
- {
-      name: 'scientific-structur',
-      displayName: 'navigation.scientific_structur',
-      meta: {
-        icon: 'inventory'
-      }
-    },
 
 
   ] as INavigationRoute[],

@@ -124,6 +124,16 @@ const routes: Array<RouteRecordRaw> = [
         path: 'Permission',
         component: () => import('../pages/admin/Permissions/index.vue'),
       },
+        {
+        name: 'scientific-structur',
+        path: 'scientific-structur',
+        component: () => import('../pages/admin/scientific-structur/index.vue'),
+      },
+      {
+        name: 'categories',
+        path: 'categories',
+        component: () => import('../pages/admin/Categories/index.vue'),
+      },
       {
         name: 'statistics',
         path: 'users_management',
@@ -193,11 +203,7 @@ const routes: Array<RouteRecordRaw> = [
         path: 'dashboard',
         component: () => import('../pages/warehouse/dashboard/Dashboard.vue'),
       },
-      {
-        name: 'categories',
-        path: 'categories',
-        component: () => import('../pages/warehouse/Categories/index.vue'),
-      },
+
        {
         name: 'invoices',
         path: 'invoices',
@@ -256,11 +262,7 @@ const routes: Array<RouteRecordRaw> = [
         path: 'offers-update/:id',
         component: () => import('../pages/warehouse/offer/update.vue'),
       },
-      {
-        name: 'scientific-structur',
-        path: 'scientific-structur',
-        component: () => import('../pages/warehouse/scientific-structur/index.vue'),
-      },
+
       UIRoute,
     ],
   },

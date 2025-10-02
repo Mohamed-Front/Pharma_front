@@ -192,7 +192,7 @@ onMounted(() => {
               icon="pi pi-arrow-left"
               class="px-6 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
               :disabled="loading || invoiceLoading"
-              @click="router.push({ name: 'order_list' })"
+              @click="router.push({ name: 'order' })"
             />
             <Button
               v-if="order?.invoice"
