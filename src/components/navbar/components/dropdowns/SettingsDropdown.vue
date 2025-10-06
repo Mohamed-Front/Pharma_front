@@ -1,22 +1,22 @@
 <template>
-  <va-dropdown class="settings-dropdown" position="bottom" boundary-body :offset="[13, 0]">
+  <va-Dropdown class="settings-Dropdown " position="bottom" boundary-body :offset="[13, 0]">
     <template #anchor>
-      <va-icon name="vuestic-iconset-settings flex text-[1.4rem]" class="settings-dropdown__icon" />
+      <va-icon name="vuestic-iconset-settings flex text-[1.4rem]" class="settings-Dropdown __icon" />
     </template>
 
-    <va-dropdown-content class="settings-dropdown__content pl-8 pr-8 pt-2 pb-2">
-      <div class="settings-dropdown__content-label mt-2 mb-4" :style="{ color: colors.primary }">
+    <va-Dropdown -content class="settings-Dropdown __content pl-8 pr-8 pt-2 pb-2">
+      <div class="settings-Dropdown __content-label mt-2 mb-4" :style="{ color: colors.primary }">
         {{ t('dashboard.navigationLayout') }}
       </div>
       <va-button-toggle
         v-model="isTopBarProxy"
         outline
         :options="options"
-        class="settings-dropdown__control mb-2"
+        class="settings-Dropdown __control mb-2"
         size="small"
       />
-    </va-dropdown-content>
-  </va-dropdown>
+    </va-Dropdown -content>
+  </va-Dropdown >
 </template>
 
 <script setup lang="ts">
@@ -36,7 +36,7 @@
   }>()
 
   const options = ref([
-    { label: t('dashboard.sideBarButton'), value: String(false) }, // NOTE: boolean is unsupported for va-dropdown
+    { label: t('dashboard.sideBarButton'), value: String(false) }, // NOTE: boolean is unsupported for va-Dropdown 
     { label: t('dashboard.topBarButton'), value: String(true) },
   ])
 
@@ -51,7 +51,7 @@
 </script>
 
 <style lang="scss">
-  .settings-dropdown {
+  .settings-Dropdown {
     cursor: pointer;
 
     &__icon {
@@ -72,7 +72,7 @@
       }
     }
 
-    .va-dropdown__anchor {
+    .va-Dropdown __anchor {
       display: inline-block;
     }
   }

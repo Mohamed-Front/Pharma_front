@@ -1,3 +1,4 @@
+```vue
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
@@ -29,7 +30,7 @@ const staticBestSellers = [
     commercial_name: 'Sample Product',
     pharmaceutical_form: 'قرص',
     price: 10,
-    discount: '15% Off',
+    discount: [],
     warehouse: { name: 'Sample Warehouse', address: 'Sample Address' },
     scientific_structure: ['Acetaminophen', 'Paracetamol'],
     media: [{ url: '/path/to/sample-image.png' }],
@@ -44,7 +45,15 @@ const fetchBestSellers = async () => {
     if (response.data.success && response.data.data?.length > 0) {
       bestSellers.value = response.data.data.map(product => ({
         ...product,
-        discount: product.discount || t('products.discount'), // Use API discount or fallback
+        discount: product.active_offers.length > 0
+          ? product.active_offers.map(offer => ({
+              id: offer.id,
+              display: offer.discount_type === 1
+                ? `${offer.discount_value}% OFF`
+                : `$${offer.discount_value} OFF`,
+              description: offer.description || 'No description',
+            }))
+          : [], // Map active_offers to a display-friendly format
         tags: product.scientific_structure?.length > 0
           ? product.scientific_structure
           : [t('tags.acetaminophen'), t('tags.paracetamol')],
@@ -162,7 +171,7 @@ onMounted(() => {
         :speed="5000"
         :grab-cursor="true"
         :css-mode="true"
-        :simulate-touch="false"
+
         :touch-start-prevent-default="false"
         :touch-ratio="1.5"
         class="mb-8"
@@ -189,7 +198,7 @@ onMounted(() => {
             <img
               v-if="product.media?.[0]?.url"
               :src="product.media[0].url"
-              alt="Product Image"
+              :alt="product.commercial_name"
               class="w-12 h-12 object-cover rounded-lg"
               @error="handleImageError"
             />
@@ -201,7 +210,7 @@ onMounted(() => {
             </h3>
             <p class="text-sm text-gray-600">
               <i :class="['pi', getProductIcon(product.pharmaceutical_form), 'mr-1']"></i>
-              {{ product.pharmaceutical_form }}
+              {{ product.pharmaceutical_form || 'N/A' }}
             </p>
           </div>
           <!-- Warehouse Info -->
@@ -223,9 +232,21 @@ onMounted(() => {
           </div>
           <!-- Price and Discount -->
           <div class="flex items-center justify-between w-full mt-auto mb-4">
-            <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full">
-              {{ product.discount }}
-            </span>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="offer in product.discount"
+                :key="offer.id"
+                class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full"
+              >
+                {{ offer.display }}
+              </span>
+              <span
+                v-if="!product.discount.length"
+                class="bg-gray-100 text-gray-600 text-xs font-semibold px-2 py-1 rounded-full"
+              >
+                {{ t('noOffers') }}
+              </span>
+            </div>
             <span class="text-lg md:text-xl font-bold text-green-600">
               ${{ product.price }}
             </span>
@@ -237,6 +258,7 @@ onMounted(() => {
             class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 w-full z-50 rounded-lg transition-colors flex items-center justify-center"
             :disabled="cartLoading[product.id]"
             @click="addToCart(product.id)"
+            :aria-label="t('cart.addToCart') + ' ' + product.commercial_name"
           />
         </SwiperSlide>
       </swiper>
@@ -282,3 +304,4 @@ img {
   border-radius: 8px;
 }
 </style>
+```

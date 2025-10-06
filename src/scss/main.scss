@@ -36,6 +36,9 @@ pre {
   font-family: monospace;
   font-size: 1em;
 }
+.p-dropdown-panel .p-dropdown-header .p-dropdown-filter{
+  margin-right: 0px !important;
+}
 .va-tabs .va-tabs__slider-wrapper{
   visibility: hidden !important;
 }
@@ -140,7 +143,7 @@ pre {
 .p-button-text{
   color:white !important;
 }
-.notification-dropdown__content
+.notification-Dropdown __content
 {
    max-height: 300px !important;
   width: 300px !important;

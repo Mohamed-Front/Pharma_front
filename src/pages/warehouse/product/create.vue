@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 import { useToast } from 'primevue/usetoast';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 const router = useRouter();
 const toast = useToast();
@@ -17,6 +17,9 @@ const activeIngredients = ref([]);
 const imageFile = ref(null);
 const imagePreview = ref(null);
 const isDragging = ref(false);
+const commercialNameSuggestions = ref([]);
+const showSuggestions = ref(false);
+
 const errors = ref({
   category_id: false,
   company_id: false,
@@ -67,6 +70,40 @@ const fetchDropdownOptions = async () => {
     console.error('Error fetching dropdown options:', error);
     toast.add({ severity: 'error', summary: t('error'), detail: t('error_fetching_data'), life: 3000 });
   }
+};
+
+// Search for similar commercial names
+const searchCommercialNames = async (query) => {
+  if (!query || query.length < 2) {
+    commercialNameSuggestions.value = [];
+    showSuggestions.value = false;
+    return;
+  }
+
+  try {
+    const response = await axios.get(`/api/product/by/name?name=${encodeURIComponent(query)}`);
+    commercialNameSuggestions.value = response.data.data || [];
+    showSuggestions.value = commercialNameSuggestions.value.length > 0;
+  } catch (error) {
+    console.error('Error fetching commercial names:', error);
+    toast.add({ severity: 'error', summary: t('error'), detail: t('error_fetching_names'), life: 3000 });
+    commercialNameSuggestions.value = [];
+    showSuggestions.value = false;
+  }
+};
+
+// Select a suggested commercial name
+const selectCommercialName = (name) => {
+  productData.value.commercial_name = name;
+  commercialNameSuggestions.value = [];
+  showSuggestions.value = false;
+};
+
+// Handle commercial name input
+const handleCommercialNameInput = (event) => {
+  const query = event.target.value;
+  productData.value.commercial_name = query;
+  searchCommercialNames(query);
 };
 
 // Handle drag events
@@ -176,6 +213,7 @@ onMounted(() => {
             {{ $t('product.category') }} <span class="text-red-500">*</span>
           </label>
           <Dropdown
+            filter
             id="category"
             v-model="productData.category_id"
             :options="categories"
@@ -193,6 +231,7 @@ onMounted(() => {
             {{ $t('product.company') }} <span class="text-red-500">*</span>
           </label>
           <Dropdown
+            filter
             id="company"
             v-model="productData.company_id"
             :options="companies"
@@ -204,8 +243,8 @@ onMounted(() => {
           />
         </div>
 
-        <!-- Commercial Name -->
-        <div class="space-y-2">
+        <!-- Commercial Name with Autocomplete -->
+        <div class="space-y-2 relative">
           <label for="commercial_name" class="block text-sm font-medium text-gray-700">
             {{ $t('product.commercial_name') }} <span class="text-red-500">*</span>
           </label>
@@ -215,7 +254,22 @@ onMounted(() => {
             :placeholder="$t('product.enter_commercial_name')"
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             :class="{ 'p-invalid': errors.commercial_name }"
+            @input="handleCommercialNameInput"
+            @focus="showSuggestions = commercialNameSuggestions.length > 0"
+            @blur="setTimeout(() => showSuggestions = false, 200)"
           />
+          <div v-if="showSuggestions && commercialNameSuggestions.length > 0" class="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto">
+            <ul class="py-1">
+              <li
+                v-for="suggestion in commercialNameSuggestions"
+                :key="suggestion.id"
+                @click="selectCommercialName(suggestion.commercial_name)"
+                class="px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-200"
+              >
+                {{ suggestion.commercial_name }}
+              </li>
+            </ul>
+          </div>
         </div>
 
         <!-- Active Ingredient (Multi-Select) -->
@@ -224,6 +278,7 @@ onMounted(() => {
             {{ $t('product.active_ingredient') }} <span class="text-red-500">*</span>
           </label>
           <MultiSelect
+            filter
             id="active_ingredient"
             v-model="productData.active_ingredient"
             :options="activeIngredients"
@@ -286,6 +341,7 @@ onMounted(() => {
             {{ $t('product.quantity_unit') }}
           </label>
           <Dropdown
+            filter
             id="quantity_unit"
             v-model="productData.quantity_unit"
             :options="[
@@ -325,6 +381,7 @@ onMounted(() => {
             {{ $t('product.price_unit') }} <span class="text-red-500">*</span>
           </label>
           <Dropdown
+            filter
             id="price_unit"
             v-model="productData.price_unit"
             :options="[
@@ -361,7 +418,7 @@ onMounted(() => {
             {{ $t('product.expiration_to') }} <span class="text-red-500">*</span>
           </label>
           <InputText
-           type="date"
+            type="date"
             id="expiration_to"
             v-model="productData.expiration_to"
             :placeholder="$t('product.enter_expiration_to')"
@@ -369,8 +426,6 @@ onMounted(() => {
             :class="{ 'p-invalid': errors.expiration_to }"
           />
         </div>
-
-
 
         <!-- Storage Notes -->
         <div class="space-y-2 md:col-span-2">
@@ -484,19 +539,23 @@ onMounted(() => {
   transition-duration: 300ms;
 }
 
-/* Custom scrollbar for dropdowns */
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper) {
+/* Custom scrollbar for dropdowns and suggestions */
+:deep(.p-dropdown-panel .p-dropdown-items-wrapper),
+.suggestions-list {
   scrollbar-width: thin;
   scrollbar-color: #3b82f6 #f1f1f1;
 }
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar) {
+:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar),
+.suggestions-list::-webkit-scrollbar {
   width: 6px;
 }
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar-track) {
+:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar-track),
+.suggestions-list::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 3px;
 }
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar-thumb) {
+:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar-thumb),
+.suggestions-list::-webkit-scrollbar-thumb {
   background-color: #3b82f6;
   border-radius: 3px;
 }

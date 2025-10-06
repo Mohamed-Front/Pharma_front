@@ -42,7 +42,7 @@ export const useAuthStore = defineStore('Auth', {
 
         if (response.data.data?.access_token) {
 
-          this.userPermissions = response.data.data.user.permissions
+
           this.type = response.data.data.user.type
           if(response.data.data.user.type == 1){
           this.router.push({ name: 'dashboard' })
@@ -51,10 +51,12 @@ export const useAuthStore = defineStore('Auth', {
           this.admintoken=response.data.data.access_token
           this.warehoustoken=''
           this.warehouseauthenticated=false
+          this.userPermissions = response.data.data.user.permissions
+
 
           }
           if(response.data.data.user.type == 2){
-
+          this.userPermissions = response.data.data.user.permissions
           this.warehoustoken=response.data.data.access_token
           this.warehouseauthenticated=true
           this.router.push({ name: 'warehouse_dashboard' })

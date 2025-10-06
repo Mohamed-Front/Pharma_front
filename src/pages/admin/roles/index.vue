@@ -280,7 +280,7 @@ onMounted(() => {
               </span>
 
               <span class="p-paginator-rpp-options">
-                <Dropdown
+                <Dropdown 
                   v-model="rowsPerPage"
                   :options="[5, 10, 20, 30]"
                   @change="changeRowsPerPage"

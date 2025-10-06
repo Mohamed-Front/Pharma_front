@@ -313,6 +313,13 @@ onMounted(() => {
                   @click="changeStatus(slotProps.data.id, 5)"
                   v-tooltip.top="t('order.cancel')"
                 />
+                  <Button
+                  v-can="'edit orders'"
+                  icon="pi pi-truck"
+                  class="p-detail"
+                  @click="changeStatus(slotProps.data.id, 3)"
+                  v-tooltip.top="t('order.delivered')"
+                />
               </template>
             </Column>
 
@@ -381,7 +388,7 @@ onMounted(() => {
               </span>
 
               <span class="p-paginator-rpp-options">
-                <Dropdown
+                <Dropdown 
                   v-model="rowsPerPage"
                   :options="[5, 10, 20, 30]"
                   @change="changeRowsPerPage"

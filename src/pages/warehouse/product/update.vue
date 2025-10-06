@@ -228,6 +228,7 @@ onMounted(() => {
             {{ $t('product.category') }} <span class="text-red-500">*</span>
           </label>
           <Dropdown
+          filter
             id="category"
             v-model="productData.category_id"
             :options="categories"
@@ -246,6 +247,7 @@ onMounted(() => {
             {{ $t('product.company') }} <span class="text-red-500">*</span>
           </label>
           <Dropdown
+          filter
             id="company"
             v-model="productData.company_id"
             :options="companies"
@@ -345,6 +347,7 @@ onMounted(() => {
             {{ $t('product.quantity_unit') }} <span class="text-red-500">*</span>
           </label>
           <Dropdown
+          filter
             id="quantity_unit"
             v-model="productData.quantity_unit"
             :options="[
@@ -386,6 +389,7 @@ onMounted(() => {
             {{ $t('product.price_unit') }} <span class="text-red-500">*</span>
           </label>
           <Dropdown
+            filter
             id="price_unit"
             v-model="productData.price_unit"
             :options="[

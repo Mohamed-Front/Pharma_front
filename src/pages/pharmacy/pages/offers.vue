@@ -1,3 +1,4 @@
+```vue
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
@@ -25,11 +26,12 @@ const appLang = ref(localStorage.getItem('appLang') || 'ar');
 const staticProducts = [
   {
     id: 0,
+    product_id: 0,
     name_en: 'Fallback Product',
     name_ar: 'منتج احتياطي',
     pharmaceutical_form: 'Unknown',
     scientific_structure: [],
-    discount: '0%',
+    discount: [],
     price: 0,
     media: [{ url: '/images/fallback-product.jpg' }],
     warehouse: {
@@ -45,19 +47,27 @@ const fetchOffers = async (page = 1) => {
   try {
     const searchParam = searchQuery.value ? `search=${encodeURIComponent(searchQuery.value)}&` : '';
     const response = await axios.get(`/api/pharmacy-home/get/offers?${searchParam}page=${page}`);
-    if (response.data.success) {
+    if (response.data.success && response.data.data?.length > 0) {
       products.value = response.data.data
-        .filter(item => item.product && item.warehouse)
+        .filter(item => item.warehouse)
         .map(item => ({
           id: item.id,
-          product_id:item.product.id,
-          name_en: item.product.commercial_name || 'Unknown Product',
-          name_ar: item.product.commercial_name || 'منتج غير معروف',
-          pharmaceutical_form: item.product.pharmaceutical_form || 'Unknown',
-          scientific_structure: item.product.scientific_structure || [],
-          discount: item.discount_type === 1 ? `${item.discount_value}%` : `${item.discount_value} $`,
-          price: parseFloat(item.product.price) || 0,
-          media: item.product.media || [{ url: '/images/fallback-product.jpg' }],
+          product_id: item.id, // Use item.id as product_id since the structure provides it directly
+          name_en: item.commercial_name || 'Unknown Product',
+          name_ar: item.commercial_name || 'منتج غير معروف',
+          pharmaceutical_form: item.pharmaceutical_form || 'Unknown',
+          scientific_structure: item.scientific_structure || [],
+          discount: item.active_offers.length > 0
+            ? item.active_offers.map(offer => ({
+                id: offer.id,
+                display: offer.discount_type === 1
+                  ? `${offer.discount_value}% OFF`
+                  : `$${offer.discount_value} OFF`,
+                description: offer.description || 'No description',
+              }))
+            : [], // Map active_offers to a display-friendly format
+          price: parseFloat(item.price) || 0,
+          media: item.media || [{ url: '/images/fallback-product.jpg' }],
           warehouse: {
             name: item.warehouse?.name || 'Unknown Warehouse',
             address: item.warehouse?.address || 'Unknown Address',
@@ -257,18 +267,30 @@ onMounted(() => {
             </span>
           </div>
           <div class="flex items-center justify-between w-full mt-auto mb-4">
-            <span v-if="product.discount" class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full">
-              {{ product.discount }}
-            </span>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="offer in product.discount"
+                :key="offer.id"
+                class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full"
+              >
+                {{ offer.display }} ({{ offer.description }})
+              </span>
+              <span
+                v-if="!product.discount.length"
+                class="bg-gray-100 text-gray-600 text-xs font-semibold px-2 py-1 rounded-full"
+              >
+                {{ t('noOffers') }}
+              </span>
+            </div>
             <span class="text-lg md:text-xl font-bold text-green-600">
               {{ product.price }} $
             </span>
           </div>
           <Button
-            :label="cartLoading[product.id] ? t('cart.adding') : t('cart.addToCart')"
-            :icon="cartLoading[product.id] ? 'pi pi-spin pi-spinner ml-2' : 'pi pi-cart-plus ml-2'"
+            :label="cartLoading[product.product_id] ? t('cart.adding') : t('cart.addToCart')"
+            :icon="cartLoading[product.product_id] ? 'pi pi-spin pi-spinner ml-2' : 'pi pi-cart-plus ml-2'"
             class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 w-full rounded-lg transition-colors flex items-center justify-center"
-            :disabled="cartLoading[product.id]"
+            :disabled="cartLoading[product.product_id]"
             @click="addToCart(product.product_id)"
             :aria-label="t('cart.addToCart') + ' ' + (appLang === 'en' ? product.name_en : product.name_ar)"
           />
@@ -339,3 +361,4 @@ onMounted(() => {
   }
 }
 </style>
+```

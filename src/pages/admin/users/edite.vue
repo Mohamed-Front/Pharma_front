@@ -156,7 +156,7 @@ onMounted(() => {
           <label for="type" class="block text-sm font-medium text-gray-700">
             {{$t("user.type")}} <span class="text-red-500">*</span>
           </label>
-          <Dropdown
+          <Dropdown 
             id="type"
             v-model="userData.type"
             :options="[
@@ -177,7 +177,7 @@ onMounted(() => {
           <label for="role" class="block text-sm font-medium text-gray-700">
             {{$t("user.role")}} <span class="text-red-500">*</span>
           </label>
-          <Dropdown
+          <Dropdown 
             id="role"
             v-model="userData.role_id"
             :options="roles"
@@ -312,19 +312,19 @@ onMounted(() => {
   transition-duration: 300ms;
 }
 
-/* Custom scrollbar for dropdowns */
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper) {
+/* Custom scrollbar for Dropdown s */
+:deep(.p-Dropdown -panel .p-Dropdown -items-wrapper) {
   scrollbar-width: thin;
   scrollbar-color: #3b82f6 #f1f1f1;
 }
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar) {
+:deep(.p-Dropdown -panel .p-Dropdown -items-wrapper::-webkit-scrollbar) {
   width: 6px;
 }
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar-track) {
+:deep(.p-Dropdown -panel .p-Dropdown -items-wrapper::-webkit-scrollbar-track) {
   background: #f1f1f1;
   border-radius: 3px;
 }
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar-thumb) {
+:deep(.p-Dropdown -panel .p-Dropdown -items-wrapper::-webkit-scrollbar-thumb) {
   background-color: #3b82f6;
   border-radius: 3px;
 }

@@ -75,7 +75,14 @@ const fetchProducts = async (page = 1) => {
     if (response.data.success && response.data.data?.length > 0) {
       products.value = response.data.data.map(product => ({
         ...product,
-        discount: '', // Static discount as per template
+        discount: product.active_offers.length > 0
+          ? product.active_offers.map(offer => ({
+              ...offer,
+              display: offer.discount_type === 1
+                ? `${offer.discount_value}% OFF`
+                : `$${offer.discount_value} OFF`
+            }))
+          : [], // Map active_offers to a display-friendly format
       }));
       totalPages.value = response.data.pagination.last_page || 1;
       currentPage.value = response.data.pagination.current_page || 1;
@@ -228,7 +235,7 @@ onMounted(() => {
               </div>
               <div>
                 <h3 class="text-lg md:text-xl font-bold text-gray-900">{{ product.commercial_name }}</h3>
-                <p class="text-sm text-gray-600">{{ product.pharmaceutical_form }}</p>
+                <p class="text-sm text-gray-600">{{ product.pharmaceutical_form || 'N/A' }}</p>
               </div>
             </div>
             <div>
@@ -257,7 +264,21 @@ onMounted(() => {
             </span>
           </div>
           <div class="flex items-center justify-between w-full mt-auto mb-4">
-            <span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full">{{ product.discount }}</span>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="offer in product.discount"
+                :key="offer.id"
+                class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full"
+              >
+                {{ offer.display }}
+              </span>
+              <span
+                v-if="!product.discount.length"
+                class="bg-gray-100 text-gray-600 text-xs font-semibold px-2 py-1 rounded-full"
+              >
+                {{ t('noOffers') }}
+              </span>
+            </div>
             <span class="text-lg md:text-xl font-bold text-green-600">
               ${{ product.price }} <span class="text-gray-500 text-sm font-normal"></span>
             </span>

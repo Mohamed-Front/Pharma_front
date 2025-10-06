@@ -257,7 +257,7 @@
           :totalRecords="totalRecords"
           :first="(currentPage - 1) * rowsPerPage"
           @page="onPageChange"
-          template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+          template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown "
           :rowsPerPageOptions="[10, 20, 50]"
           class="bg-white p-4 rounded-lg shadow-sm"
         />
@@ -583,7 +583,7 @@ fetchOrders();
   .p-paginator-icon {
     @apply w-5 h-5;
   }
-  .p-dropdown {
+  .p-Dropdown {
     @apply rounded-lg border-gray-300;
   }
 }

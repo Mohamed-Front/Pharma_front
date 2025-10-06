@@ -17,7 +17,8 @@ const isEditing = ref(false);
 // Form Data
 const offerData = ref({
   product_id: null,
-  limit: null,
+  min_limit: null,
+  max_limit: null,
   quantity: null,
   quantity_unit: null,
   discount_type: null,
@@ -30,7 +31,8 @@ const offerData = ref({
 // Validation Errors
 const errors = ref({
   product_id: false,
-  limit: false,
+  min_limit: false,
+  max_limit: false,
   quantity: false,
   quantity_unit: false,
   discount_type: false,
@@ -40,7 +42,7 @@ const errors = ref({
   description: false,
 });
 
-// Fetch dropdown options for products
+// Fetch Dropdown filteroptions for products
 const fetchDropdownOptions = async () => {
   try {
     const productsRes = await axios.get('/api/product');
@@ -58,7 +60,8 @@ const fetchOffer = async (id) => {
     const data = response.data.data;
     offerData.value = {
       product_id: data.product_id,
-      limit: data.limit,
+      min_limit: data.min_limit,
+      max_limit: data.max_limit,
       quantity: data.quantity,
       quantity_unit: data.quantity_unit,
       discount_type: data.discount_type,
@@ -77,7 +80,8 @@ const fetchOffer = async (id) => {
 // Validate form
 const validateForm = () => {
   errors.value.product_id = !offerData.value.product_id;
-  errors.value.limit = offerData.value.limit === null || offerData.value.limit === '';
+  errors.value.min_limit = offerData.value.min_limit === null || offerData.value.min_limit === '';
+  errors.value.max_limit = offerData.value.max_limit === null || offerData.value.max_limit === '';
   errors.value.quantity = offerData.value.quantity === null || offerData.value.quantity === '';
   errors.value.quantity_unit = !offerData.value.quantity_unit;
   errors.value.discount_type = !offerData.value.discount_type;
@@ -89,6 +93,11 @@ const validateForm = () => {
   // Additional validation: Ensure start_date is not after end_date
   if (offerData.value.start_date && offerData.value.end_date) {
     errors.value.end_date = new Date(offerData.value.start_date) > new Date(offerData.value.end_date);
+  }
+
+  // Additional validation: Ensure min_limit is not greater than max_limit
+  if (offerData.value.min_limit && offerData.value.max_limit) {
+    errors.value.max_limit = offerData.value.min_limit > offerData.value.max_limit;
   }
 
   return !Object.values(errors.value).some(error => error);
@@ -167,19 +176,35 @@ onMounted(() => {
           />
         </div>
 
-        <!-- Limit -->
+        <!-- Min Limit -->
         <div class="space-y-2">
-          <label for="limit" class="block text-sm font-medium text-gray-700">
-            {{ $t('offer.limit') }} <span class="text-red-500">*</span>
+          <label for="min_limit" class="block text-sm font-medium text-gray-700">
+            {{ $t('offer.min_limit') }} <span class="text-red-500">*</span>
           </label>
           <InputNumber
-            id="limit"
-            v-model="offerData.limit"
+            id="min_limit"
+            v-model="offerData.min_limit"
             :useGrouping="false"
-            :placeholder="$t('offer.enter_limit')"
+            :placeholder="$t('offer.enter_min_limit')"
             class="w-full"
             inputClass="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :class="{ 'p-invalid': errors.limit }"
+            :class="{ 'p-invalid': errors.min_limit }"
+          />
+        </div>
+
+        <!-- Max Limit -->
+        <div class="space-y-2">
+          <label for="max_limit" class="block text-sm font-medium text-gray-700">
+            {{ $t('offer.max_limit') }} <span class="text-red-500">*</span>
+          </label>
+          <InputNumber
+            id="max_limit"
+            v-model="offerData.max_limit"
+            :useGrouping="false"
+            :placeholder="$t('offer.enter_max_limit')"
+            class="w-full"
+            inputClass="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            :class="{ 'p-invalid': errors.max_limit }"
           />
         </div>
 

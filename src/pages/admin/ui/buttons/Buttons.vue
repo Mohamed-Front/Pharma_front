@@ -184,19 +184,19 @@
     </va-card>
 
     <va-card class="larger-padding col-span-12">
-      <va-card-title>{{ t('buttons.buttonsDropdown') }}</va-card-title>
+      <va-card-title>{{ t('buttons.buttonsDropdown ') }}</va-card-title>
       <va-card-content class="my-3 flex flex-wrap items-center gap-2">
-        <va-button-dropdown :label="t('buttons.default')"> {{ t('buttons.content') }}</va-button-dropdown>
-        <va-button-dropdown split :label="t('buttons.split')"> {{ t('buttons.content') }}</va-button-dropdown>
-        <va-button-dropdown split split-to="/" :label="t('buttons.splitTo')">
-          {{ t('buttons.content') }}</va-button-dropdown
+        <va-button-Dropdown :label="t('buttons.default')"> {{ t('buttons.content') }}</va-button-Dropdown >
+        <va-button-Dropdown split :label="t('buttons.split')"> {{ t('buttons.content') }}</va-button-Dropdown >
+        <va-button-Dropdown split split-to="/" :label="t('buttons.splitTo')">
+          {{ t('buttons.content') }}</va-button-Dropdown 
         >
-        <va-button-dropdown :label="t('buttons.customIcon')" icon="info" opened-icon="bell_slash">
+        <va-button-Dropdown :label="t('buttons.customIcon')" icon="info" opened-icon="bell_slash">
           {{ t('buttons.content') }}
-        </va-button-dropdown>
-        <va-button-dropdown disabled :label="t('buttons.disabled')"> {{ t('buttons.content') }}</va-button-dropdown>
-        <va-button-dropdown color="warning" :label="t('buttons.warning')">
-          {{ t('buttons.content') }}</va-button-dropdown
+        </va-button-Dropdown >
+        <va-button-Dropdown disabled :label="t('buttons.disabled')"> {{ t('buttons.content') }}</va-button-Dropdown >
+        <va-button-Dropdown color="warning" :label="t('buttons.warning')">
+          {{ t('buttons.content') }}</va-button-Dropdown 
         >
       </va-card-content>
     </va-card>
@@ -224,7 +224,7 @@
     }
   }
 
-  .va-button-dropdown {
+  .va-button-Dropdown {
     display: inline-block;
   }
 </style>

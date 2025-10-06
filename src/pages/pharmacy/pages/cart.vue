@@ -119,6 +119,18 @@
                   <p v-if="item.total_discounts > 0" class="text-sm text-red-500 mt-1">
                     {{ t('cart.discount') }}: -{{ item.total_discounts }} {{ t('currency') }}
                   </p>
+                  <!-- Active Offers Display -->
+                  <div v-if="item.product.has_active_offer && item.product.active_offers?.length" class="mt-2">
+                    <div
+                      v-for="offer in item.product.active_offers"
+                      :key="offer.description"
+                      class="bg-green-50 text-green-800 text-xs font-medium px-3 py-2 rounded-lg mt-1"
+                    >
+                      <p>{{ offer.description }}</p>
+                      <p>Discount: {{ offer.discount_value }} {{ offer.discount_type === 2 ? t('currency') : '%' }}</p>
+                      <p>Valid until: {{ formatDate(offer.end_date) }}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="flex items-center w-full sm:w-auto justify-between sm:justify-start">
@@ -222,6 +234,12 @@ const getProductIcon = (form) => {
   return formMap[form] || 'pi-tablet';
 };
 
+// Format date for display
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
 // Handle image error
 const handleImageError = (event) => {
   event.target.style.display = 'none';
@@ -290,7 +308,7 @@ const removeItem = async (id) => {
         detail: t('cart.removeSuccess'),
         life: 3000,
       });
-       fetchCart()
+      fetchCart();
     } else {
       throw new Error(response.data.message || t('cart.removeError'));
     }
@@ -328,6 +346,7 @@ const incrementQuantity = async (id) => {
         detail: t('cart.updateSuccess'),
         life: 3000,
       });
+      fetchCart();
     } else {
       throw new Error(response.data.message || t('cart.updateError'));
     }
@@ -338,7 +357,7 @@ const incrementQuantity = async (id) => {
       detail: error.message || t('cart.updateError'),
       life: 3000,
     });
-     fetchCart()
+    fetchCart();
     console.error('Error incrementing quantity:', error);
   } finally {
     cartLoading.value[id] = false;
@@ -356,7 +375,6 @@ const decrementQuantity = async (id) => {
       quantity: item.quantity - 1,
     });
     if (response.data.success) {
-
       item.quantity--;
       item.original_price = item.product.price * item.quantity;
       item.total_price = item.original_price - (item.total_discounts || 0);
@@ -367,7 +385,7 @@ const decrementQuantity = async (id) => {
         detail: t('cart.updateSuccess'),
         life: 3000,
       });
-       fetchCart()
+      fetchCart();
     } else {
       throw new Error(response.data.message || t('cart.updateError'));
     }
@@ -431,8 +449,8 @@ const proceedToCheckout = async () => {
         detail: t('cart.orderSuccess'),
         life: 3000,
       });
-        fetchCart()
-        selectedTab.value='all'
+      fetchCart();
+      selectedTab.value = 'all';
       // Clear cart after successful order
       warehouses.value = [];
       cartItems.value = [];
