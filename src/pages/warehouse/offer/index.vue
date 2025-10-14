@@ -239,16 +239,25 @@ onMounted(() => {
             class="p-datatable-sm"
           >
             <Column selection-mode="multiple" header-style="width: 3rem"></Column>
-
+                <Column field="product.commercial_name" :header="t('offer.product')" :sortable="true" header-style="width:20%; min-width:12rem;">
+              <template #body="slotProps">
+                {{ slotProps.data.product.commercial_name }}
+              </template>
+            </Column>
             <Column field="description" :header="t('offer.description')" :sortable="true" header-style="width:20%; min-width:12rem;">
               <template #body="slotProps">
                 {{ slotProps.data.description }}
               </template>
             </Column>
 
-            <Column field="limit" :header="t('offer.limit')" :sortable="true" header-style="width:10%; min-width:8rem;">
+            <Column field="max_limit" :header="t('offer.max_limit')" :sortable="true" header-style="width:10%; min-width:8rem;">
               <template #body="slotProps">
-                {{ slotProps.data.limit }}
+                {{ slotProps.data.max_limit }}
+              </template>
+            </Column>
+             <Column field="min_limit" :header="t('offer.min_limit')" :sortable="true" header-style="width:10%; min-width:8rem;">
+              <template #body="slotProps">
+                {{ slotProps.data.min_limit }}
               </template>
             </Column>
 
@@ -358,7 +367,7 @@ onMounted(() => {
               </span>
 
               <span class="p-paginator-rpp-options">
-                <Dropdown 
+                <Dropdown
                   v-model="rowsPerPage"
                   :options="[5, 10, 20, 30]"
                   @change="changeRowsPerPage"

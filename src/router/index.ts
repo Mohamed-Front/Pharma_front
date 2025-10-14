@@ -124,6 +124,16 @@ const routes: Array<RouteRecordRaw> = [
         path: 'Permission',
         component: () => import('../pages/admin/Permissions/index.vue'),
       },
+      {
+        name: 'admin-report',
+        path: 'admin-report',
+        component: () => import('../pages/admin/report/index.vue'),
+      },
+     {
+        name: 'companies',
+        path: 'companies',
+        component: () => import('../pages/admin/company/index.vue'),
+      },
         {
         name: 'scientific-structur',
         path: 'scientific-structur',
@@ -215,11 +225,7 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/warehouse/invoice/show.vue'),
       },
 
-      {
-        name: 'companies',
-        path: 'companies',
-        component: () => import('../pages/warehouse/company/index.vue'),
-      },
+
       {
         name: 'products',
         path: 'products',
@@ -229,6 +235,16 @@ const routes: Array<RouteRecordRaw> = [
         name: 'order',
         path: 'order',
         component: () => import('../pages/warehouse/order/index.vue'),
+      },
+       {
+        name: 'warehouse-profile',
+        path: 'warehouse-profile',
+        component: () => import('../pages/warehouse/user/index.vue'),
+      },
+       {
+        name: 'reports',
+        path: 'reports',
+        component: () => import('../pages/warehouse/report/index.vue'),
       },
        {
         name: 'order_show',

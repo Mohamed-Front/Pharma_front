@@ -176,7 +176,10 @@ onMounted(() => {
             :options="[
               { label: 'Tablets', value: 1 },
               { label: 'Capsules', value: 2 },
-              { label: 'Units', value: 3 }
+              { label: 'Units', value: 3 },
+              { label: 'bottle', value: 4 },
+              { label: 'can', value: 5 }
+
             ]"
             optionLabel="label"
             optionValue="value"

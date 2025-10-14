@@ -169,10 +169,8 @@ onMounted(() => {
         :loop="true"
         :autoplay="{ delay: 3000, disableOnInteraction: false }"
         :speed="5000"
-        :grab-cursor="true"
-        :css-mode="true"
 
-        :touch-start-prevent-default="false"
+
         :touch-ratio="1.5"
         class="mb-8"
         :breakpoints="{
@@ -185,10 +183,10 @@ onMounted(() => {
         <SwiperSlide
           v-for="product in bestSellers"
           :key="product.id"
-          class="bg-white rounded-xl shadow-md p-4 relative overflow-hidden flex flex-col"
+          class="bg-white rounded-xl shadow-md p-4 h-full relative overflow-hidden flex flex-col"
         >
           <!-- Medicine Only Badge -->
-          <div class="absolute top-4 right-4">
+          <div class="absolute  top-4 right-4">
             <span class="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
               {{ t('products.medicineOnly') }}
             </span>
@@ -238,7 +236,7 @@ onMounted(() => {
                 :key="offer.id"
                 class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full"
               >
-                {{ offer.display }}
+                {{ offer.display }} ({{  offer.description.slice(0,25) }})
               </span>
               <span
                 v-if="!product.discount.length"
@@ -248,7 +246,7 @@ onMounted(() => {
               </span>
             </div>
             <span class="text-lg md:text-xl font-bold text-green-600">
-              ${{ product.price }}
+              {{ product.price +'$' }}
             </span>
           </div>
           <!-- Add to Cart Button -->

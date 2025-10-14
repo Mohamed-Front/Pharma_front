@@ -38,7 +38,7 @@
 
 
   </va-accordion>
-  <div class="w-[85%] m-auto  mb-2 ">
+  <div class="w-[85%] m-auto  mb-10 ">
       <Button
         :label='$t("Log_Out")'
         class="w-full"

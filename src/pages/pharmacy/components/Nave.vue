@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-white shadow-lg w-full ">
+  <nav class="bg-white shadow-lg w-full">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <!-- Logo and Main Menu Section -->
@@ -14,20 +14,29 @@
             <a href="/" class="text-gray-800 hover:text-green-600 px-3 py-2 rounded-md font-medium">
               {{ t('navbar.home') }}
             </a>
-            <a href="/pharmacy-categories" class="text-gray-800 hover:text-green-600 px-3 py-2 rounded-md font-medium">
-              {{ t('navbar.categories') }}
-            </a>
-            <a href="/pharmacy-warehouses" class="text-gray-800 hover:text-green-600 px-3 py-2 rounded-md font-medium">
-              {{ t('navbar.warehouses') }}
-            </a>
-             <a href="/pharmacy-offers" class="text-gray-800 hover:text-green-600 px-3 py-2 rounded-md font-medium">
+            <!-- Shop Dropdown -->
+            <div class="relative" ref="shopDropdown">
+              <button @click="toggleShopDropdown" class="text-gray-800 hover:text-green-600 px-3 py-2 rounded-md font-medium flex items-center">
+                {{ t('navbar.shop') }}
+                <i class="pi pi-chevron-down mx-2"></i>
+              </button>
+              <div v-show="shopDropdownOpen" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                <a href="/pharmacy-categories" class="block px-4 py-2 text-gray-800 hover:bg-green-50 hover:text-green-600">
+                  {{ t('navbar.categories') }}
+                </a>
+                <a href="/pharmacy-warehouses" class="block px-4 py-2 text-gray-800 hover:bg-green-50 hover:text-green-600">
+                  {{ t('navbar.warehouses') }}
+                </a>
+              </div>
+            </div>
+            <!-- Offers Link (Moved outside Shop) -->
+            <a href="/pharmacy-offers" class="text-gray-800 hover:text-green-600 px-3 py-2 rounded-md font-medium">
               {{ t('navbar.offers') }}
             </a>
-              <a v-if="authStore.pharmacyauthenticated" href="/pharmacy-orders" class="text-gray-800 hover:text-green-600 px-3 py-2 rounded-md font-medium">
+            <a v-if="authStore.pharmacyauthenticated" href="/pharmacy-orders" class="text-gray-800 hover:text-green-600 px-3 py-2 rounded-md font-medium">
               {{ t('navbar.orders') }}
             </a>
-
-            <a v-if="authStore.pharmacyauthenticated"  href="/pharmacy-profile" class="text-gray-800 hover:text-green-600 px-3 py-2 rounded-md font-medium">
+            <a v-if="authStore.pharmacyauthenticated" href="/pharmacy-profile" class="text-gray-800 hover:text-green-600 px-3 py-2 rounded-md font-medium">
               {{ t('navbar.profile') }}
             </a>
             <a href="/pharmacy-contact-us" class="text-gray-800 hover:text-green-600 px-3 py-2 rounded-md font-medium">
@@ -36,8 +45,10 @@
           </div>
         </div>
 
-        <!-- Icons, Login Button, and Language Dropdown Section -->
+        <!-- Icons, Search, Login Button, and Language Dropdown Section -->
         <div class="flex items-center space-x-4 space-x-reverse">
+          <!-- Search Bar -->
+          <SearchBar />
           <!-- Shopping Cart Icon -->
           <a v-if="authStore.pharmacyauthenticated" href="/cart" class="p-2 text-gray-800 hover:text-green-600 focus:outline-none">
             <i class="pi pi-shopping-cart text-xl"></i>
@@ -48,8 +59,8 @@
           </button>
           <!-- Login Button -->
           <a v-if="!authStore.pharmacyauthenticated" href="/auth/login" class="bg-green-600 mx-4 text-white font-bold py-2 px-3 rounded-lg flex items-center gap-2 transition-colors hover:bg-green-700">
-
             <i class="pi pi-sign-in text-sm"></i>
+            {{ t('navbar.login') }}
           </a>
           <!-- Language Dropdown -->
           <LocaleSelect></LocaleSelect>
@@ -70,17 +81,26 @@
         <a href="/" class="text-gray-800 hover:text-green-600 block px-3 py-2 rounded-md font-medium">
           {{ t('navbar.home') }}
         </a>
-        <a href="/pharmacy-categories" class="text-gray-800 hover:text-green-600 block px-3 py-2 rounded-md font-medium">
-          {{ t('navbar.categories') }}
-        </a>
-        <a href="/pharmacy-warehouses" class="text-gray-800 hover:text-green-600 block px-3 py-2 rounded-md font-medium">
-          {{ t('navbar.warehouses') }}
-        </a>
-          <a href="/pharmacy-offers" class="text-gray-800 hover:text-green-600 block px-3 py-2 rounded-md font-medium">
+        <!-- Mobile Shop Dropdown -->
+        <div>
+          <button @click="toggleMobileShopDropdown" class="text-gray-800 hover:text-green-600 block px-3 py-2 rounded-md font-medium w-full text-left flex items-center">
+            {{ t('navbar.shop') }}
+            <i class="pi pi-chevron-down ml-1"></i>
+          </button>
+          <div v-show="mobileShopDropdownOpen" class="pl-4 space-y-1">
+            <a href="/pharmacy-categories" class="text-gray-800 hover:text-green-600 block px-3 py-2 rounded-md font-medium">
+              {{ t('navbar.categories') }}
+            </a>
+            <a href="/pharmacy-warehouses" class="text-gray-800 hover:text-green-600 block px-3 py-2 rounded-md font-medium">
+              {{ t('navbar.warehouses') }}
+            </a>
+          </div>
+        </div>
+        <!-- Offers Link (Moved outside Shop) -->
+        <a href="/pharmacy-offers" class="text-gray-800 hover:text-green-600 block px-3 py-2 rounded-md font-medium">
           {{ t('navbar.offers') }}
         </a>
-
-          <a  v-if="authStore.pharmacyauthenticated" href="/pharmacy-orders" class="text-gray-800 hover:text-green-600 block px-3 py-2 rounded-md font-medium">
+        <a v-if="authStore.pharmacyauthenticated" href="/pharmacy-orders" class="text-gray-800 hover:text-green-600 block px-3 py-2 rounded-md font-medium">
           {{ t('navbar.orders') }}
         </a>
         <a v-if="authStore.pharmacyauthenticated" href="/pharmacy-profile" class="text-gray-800 hover:text-green-600 block px-3 py-2 rounded-md font-medium">
@@ -90,7 +110,7 @@
           {{ t('navbar.contact') }}
         </a>
         <a v-if="!authStore.pharmacyauthenticated" href="/auth/login" class="text-gray-800 hover:text-green-600 block px-3 py-2 rounded-md font-medium">
-
+          {{ t('navbar.login') }}
         </a>
       </div>
     </div>
@@ -98,10 +118,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import 'primeicons/primeicons.css';
 import LocaleSelect from '../../../components/LocaleSelect.vue';
+import SearchBar from './SearchBar.vue';
 import { useAuthStore } from '@/stores/auth';
 
 // Localization
@@ -113,8 +134,43 @@ const authStore = useAuthStore();
 // State for the mobile menu visibility
 const mobileMenuOpen = ref(false);
 
+// State for desktop shop dropdown
+const shopDropdownOpen = ref(false);
+
+// State for mobile shop dropdown
+const mobileShopDropdownOpen = ref(false);
+
+// Reference to the shop dropdown element
+const shopDropdown = ref(null);
+
 // Function to toggle the mobile menu
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value;
 };
+
+// Function to toggle the shop dropdown (desktop)
+const toggleShopDropdown = () => {
+  shopDropdownOpen.value = !shopDropdownOpen.value;
+};
+
+// Function to toggle the shop dropdown (mobile)
+const toggleMobileShopDropdown = () => {
+  mobileShopDropdownOpen.value = !mobileShopDropdownOpen.value;
+};
+
+// Function to close dropdown on outside click
+const closeDropdownOnOutsideClick = (event) => {
+  if (shopDropdownOpen.value && shopDropdown.value && !shopDropdown.value.contains(event.target)) {
+    shopDropdownOpen.value = false;
+  }
+};
+
+// Add and remove event listener for outside clicks
+onMounted(() => {
+  document.addEventListener('click', closeDropdownOnOutsideClick);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeDropdownOnOutsideClick);
+});
 </script>

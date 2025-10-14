@@ -5,7 +5,7 @@ export interface INavigationRoute {
     icon: string
     permission?: string | string[]
   }
-  show?: string | string[] // permissions required to show this route
+  show?: string | string[]
   disabled?: boolean
   children?: INavigationRoute[]
 }
@@ -64,35 +64,49 @@ const navigationRoutes = {
         },
       ],
     },
-     {
+    {
       name: 'categories',
       displayName: 'navigation.categories',
       meta: {
-        icon: 'inventory'
+        icon: 'category'
       }
     },
-     {
+      {
+      name: 'companies',
+      displayName: 'companies',
+      meta: {
+        icon: 'business'
+      }
+    },
+    {
       name: 'scientific-structur',
       displayName: 'navigation.scientific_structur',
       meta: {
-        icon: 'inventory'
+        icon: 'science'
       }
     },
-
     {
       name: 'pharmacy-request',
       displayName: 'navigation.pharmacy_request',
       show: ['list pharmacy requests'],
       meta: {
-        icon: 'dashboard',
+        icon: 'medical_services'
       },
     },
-     {
+    {
       name: 'warehouse_request',
       displayName: 'warehouse_request',
       show: ['list warehouse requests'],
       meta: {
-        icon: 'dashboard',
+        icon: 'warehouse'
+      },
+    },
+    {
+      name: 'admin-report',
+      displayName: 'admin_report',
+      show: ['list warehouse requests'],
+      meta: {
+        icon: 'assessment'
       },
     },
     {
@@ -114,48 +128,53 @@ const navigationRoutes = {
         icon: 'dashboard'
       }
     },
-
-      {
+    {
       name: 'products',
       displayName: 'navigation.products',
       meta: {
-        icon: 'inventory'
+        icon: 'inventory_2'
       }
     },
-     {
-      name: 'companies',
-      displayName: 'companies',
-      meta: {
-        icon: 'inventory'
-      }
-    },
-     {
+
+    {
       name: 'order',
       displayName: 'navigation.orders',
       meta: {
-        icon: 'inventory'
+        icon: 'shopping_cart'
       }
     },
-      {
+    {
       name: 'offers',
       displayName: 'navigation.offers',
       meta: {
-        icon: 'inventory'
+        icon: 'local_offer'
       }
     },
-     {
+    {
       name: 'invoices',
       displayName: 'navigation.invoice',
       meta: {
-        icon: 'inventory'
+        icon: 'receipt'
       }
     },
-
-
-
+    {
+      name: 'reports',
+      displayName: 'navigation.reports',
+      meta: {
+        icon: 'assessment'
+      }
+    },
+    {
+      name: 'warehouse-profile',
+      displayName: 'navigation.profile',
+      meta: {
+        icon: 'account_circle'
+      }
+    },
   ] as INavigationRoute[],
 
-
+  // Pharmacy routes (type 3)
+  pharmacy: [] as INavigationRoute[],
 }
 
 // Helper function to filter routes based on user permissions

@@ -2,7 +2,7 @@
   <!-- Main container for the footer, with RTL direction -->
   <footer class="bg-green-700 text-white py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 justify-items-center ">
+      <div class="grid grid-cols-1 md:grid-cols-3  gap-8 justify-items-center ">
 
        <!-- Logo and Copyright Section -->
         <div class="  flex  ">
@@ -13,25 +13,15 @@
         <div class="">
           <h3 class="text-xl font-bold mb-4">الرئيسية</h3>
           <ul class="space-y-2">
-            <li><a href="#" class="hover:underline">الرئيسية</a></li>
-            <li><a href="#" class="hover:underline">العروض</a></li>
-            <li><a href="#" class="hover:underline">المستودعات</a></li>
-            <li><a href="#" class="hover:underline">الاكثر طلبا</a></li>
-            <li><a href="#" class="hover:underline">طلباتي</a></li>
+            <li><a href="/" class="hover:underline">الرئيسية</a></li>
+            <li><a href="/pharmacy-offers" class="hover:underline">العروض</a></li>
+            <li><a href="/pharmacy-warehouses" class="hover:underline">المستودعات</a></li>
+            <li><a href="/" class="hover:underline">الاكثر طلبا</a></li>
+            <li><a href="/pharmacy-categories" class="hover:underline">التصنيفات</a></li>
           </ul>
         </div>
 
-        <!-- Quick Links Section -->
-        <div class="">
-          <h3 class="text-xl font-bold mb-4">روابط سريعة</h3>
-          <ul class="space-y-2">
-            <li><a href="#" class="hover:underline">الرئيسية</a></li>
-            <li><a href="#" class="hover:underline">التصنيفات</a></li>
-            <li><a href="#" class="hover:underline">المستودعات</a></li>
-            <li><a href="#" class="hover:underline">الملف الشخصي</a></li>
-            <li><a href="#" class="hover:underline">اتصل بنا</a></li>
-          </ul>
-        </div>
+
   <!-- Contact Information Section -->
         <div class="">
           <h3 class="text-xl font-bold mb-4">بيانات التواصل</h3>

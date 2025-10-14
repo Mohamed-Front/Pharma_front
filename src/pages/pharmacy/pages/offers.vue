@@ -273,7 +273,7 @@ onMounted(() => {
                 :key="offer.id"
                 class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full"
               >
-                {{ offer.display }} ({{ offer.description }})
+                {{ offer.display }} ({{  offer.description.slice(0,25) }})
               </span>
               <span
                 v-if="!product.discount.length"
@@ -283,7 +283,7 @@ onMounted(() => {
               </span>
             </div>
             <span class="text-lg md:text-xl font-bold text-green-600">
-              {{ product.price }} $
+              {{ product.price +'$' }}
             </span>
           </div>
           <Button
