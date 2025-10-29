@@ -38,7 +38,7 @@
         class="p-4 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0"
         role="option"
       >
-        <div class="flex items-center justify-between gap-3">
+        <div @click="ShowDetail(product.id)" class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-3" @click="goToProduct(product.id)">
             <img
               v-if="product.media?.[0]?.url"
@@ -142,6 +142,10 @@ const staticSearchResults = {
   ],
 };
 
+
+const ShowDetail=(id)=>{
+ router.push({name:'serach-product-detail',params:{id:id}})
+}
 // Fetch search results from API with debouncing
 const fetchSearchResults = debounce(async (query) => {
   if (!query) {

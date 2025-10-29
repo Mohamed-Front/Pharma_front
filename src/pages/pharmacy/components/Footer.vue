@@ -52,8 +52,8 @@
       <!-- Bottom Bar with Copyright and Legal Links -->
       <div class="flex flex-col md:flex-row items-center justify-between text-sm text-center md:text-right space-y-4 md:space-y-0">
         <div class="flex space-x-4 space-x-reverse">
-          <a href="#" class="hover:underline">سياسة الخصوصية</a>
-          <a href="#" class="hover:underline">الشروط والأحكام</a>
+          <a href="/Politics-privacy" class="hover:underline">سياسة الخصوصية</a>
+          <a href="/terms-condition" class="hover:underline">الشروط والأحكام</a>
         </div>
         <p>&copy; 2024 Pharma Bank جميع الحقوق محفوظة</p>
       </div>

@@ -186,7 +186,7 @@ onMounted(() => {
             <div class="flex gap-2">
               <span class="p-input-icon-left">
                 <i class="pi pi-search" />
-                <InputText v-model="searchQuery" :placeholder="t('product.search')" />
+                <InputText v-model="searchQuery" :placeholder="$t('product.search')" />
               </span>
               <Button
                 v-can="'create products'"

@@ -19,8 +19,12 @@
           :color="colors.primary"
           @click="isSidebarMinimized = !isSidebarMinimized"
         />
+         <WarehouseNotification></WarehouseNotification>
+         <AdminNotification></AdminNotification>
+
         <LocaleSelect id="local-switcher"></LocaleSelect>
       </div>
+
     </template>
   </va-navbar>
 </template>
@@ -36,6 +40,9 @@ import VuesticLogo from '../VuesticLogo.vue'
 import VaIconMenuCollapsed from '../icons/VaIconMenuCollapsed.vue'
 import AppNavbarActions from './components/AppNavbarActions.vue'
 import LocaleSelect from '../LocaleSelect.vue'
+import WarehouseNotification from '../notification/WarehouseNotification.vue'
+import AdminNotification from '../notification/AdminNotification.vue'
+
 
 const router = useRouter()
 const { t } = useI18n()

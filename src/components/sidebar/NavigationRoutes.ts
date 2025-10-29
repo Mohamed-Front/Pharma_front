@@ -109,14 +109,25 @@ const navigationRoutes = {
         icon: 'assessment'
       },
     },
+     {
+      name: 'notification',
+      displayName: 'navigation.notifications',
+      meta: {
+        icon: 'notifications'
+      },
+    },
+
+
     {
       name: 'settings',
       displayName: 'navigation.settings',
-      show: ['manage settings'],
+      show: ['list warehouse requests'],
       meta: {
         icon: 'settings'
       }
-    }
+    },
+
+
   ] as INavigationRoute[],
 
   // Warehouse routes (type 2)
@@ -164,6 +175,14 @@ const navigationRoutes = {
         icon: 'assessment'
       }
     },
+   {
+      name: 'warehouse-notification',
+      displayName: 'navigation.notifications',
+
+      meta: {
+        icon: 'notifications'
+      }
+    },
     {
       name: 'warehouse-profile',
       displayName: 'navigation.profile',
@@ -171,6 +190,8 @@ const navigationRoutes = {
         icon: 'account_circle'
       }
     },
+
+
   ] as INavigationRoute[],
 
   // Pharmacy routes (type 3)

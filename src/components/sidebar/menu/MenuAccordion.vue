@@ -1,6 +1,5 @@
 <template>
   <va-accordion v-model="accordionValue" class="sidebar-accordion va-sidebar__menu__inner" multiple>
-
     <va-collapse v-for="(route, idx) in filteredRoutes" :key="idx">
       <template #header>
         <va-sidebar-item
@@ -13,6 +12,18 @@
             <va-sidebar-item-title>
               {{ t(route.displayName) }}
             </va-sidebar-item-title>
+            <Badge
+              v-if="route.name === 'notification' && adminNotificationsData.unread_count > 0"
+              :value="adminNotificationsData.unread_count"
+              severity="danger"
+              class="bg-red-500 text-white ml-2"
+            />
+            <Badge
+              v-if="route.name === 'warehouse-notification' && warehouseNotificationsData.unread_count > 0"
+              :value="warehouseNotificationsData.unread_count"
+              severity="danger"
+              class="bg-red-500 text-white ml-2"
+            />
             <va-icon v-if="route.children" :name="accordionValue[idx] ? 'expand_less' : 'expand_more'" />
           </va-sidebar-item-content>
         </va-sidebar-item>
@@ -31,23 +42,34 @@
             <va-sidebar-item-title>
               {{ t(child.displayName) }}
             </va-sidebar-item-title>
+            <Badge
+              v-if="child.name === 'notification' && adminNotificationsData.unread_count > 0"
+              :value="adminNotificationsData.unread_count"
+              severity="danger"
+              class="bg-red-500 text-white ml-2"
+            />
+            <Badge
+              v-if="child.name === 'warehouse-notification' && warehouseNotificationsData.unread_count > 0"
+              :value="warehouseNotificationsData.unread_count"
+              severity="danger"
+              class="bg-red-500 text-white ml-2"
+            />
           </va-sidebar-item-content>
         </va-sidebar-item>
       </template>
     </va-collapse>
-
-
+      <div class="w-[85%] m-auto mb-10">
+    <Button
+      :label="$t('Log_Out')"
+      class="w-full"
+      style="background-color: #EF0000 !important;"
+      severity="danger"
+      icon="pi pi-sign-out"
+      @click="logout"
+    />
+  </div>
   </va-accordion>
-  <div class="w-[85%] m-auto  mb-10 ">
-      <Button
-        :label='$t("Log_Out")'
-        class="w-full"
-        style="background-color: #EF0000 !important;"
-        severity="danger"
-        icon="pi pi-sign-out"
-        @click="logout"
-      />
-    </div>
+
 </template>
 
 <script setup lang="ts">
@@ -56,6 +78,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../../stores/Auth'
 import Button from 'primevue/button'
+import Badge from 'primevue/badge'
 import axios from 'axios'
 import { INavigationRoute } from '../NavigationRoutes'
 import { getFilteredRoutes } from '../NavigationRoutes'
@@ -77,6 +100,8 @@ const { t } = useI18n()
 const accordionValue = ref<boolean[]>([])
 const userPermissions = ref<string[]>([])
 const userType = ref<number>(0)
+const adminNotificationsData = ref({ data: [], total: 0, unread_count: 0 })
+const warehouseNotificationsData = ref({ data: [], total: 0, unread_count: 0 })
 
 const dashboardRoute = computed(() => {
   switch (userType.value) {
@@ -91,6 +116,26 @@ const filteredRoutes = computed(() => {
   return getFilteredRoutes(userType.value, userPermissions.value)
 })
 
+const fetchNotificationData = () => {
+  axios
+    .get('/api/notification/get')
+    .then((res) => {
+      adminNotificationsData.value = {
+        data: res.data.data.admin_notifications.data || [],
+        total: res.data.data.admin_notifications.total || 0,
+        unread_count: res.data.data.admin_notifications.data.filter((n: any) => !n.read_at).length,
+      }
+      warehouseNotificationsData.value = {
+        data: res.data.data.warehouse_notifications.data || [],
+        total: res.data.data.warehouse_notifications.total || 0,
+        unread_count: res.data.data.warehouse_notifications.data.filter((n: any) => !n.read_at).length,
+      }
+    })
+    .catch((error) => {
+      console.error('Error fetching notifications:', error)
+    })
+}
+
 onMounted(() => {
   // Initialize user permissions and type
   const permissions = localStorage.getItem('userPermissions')
@@ -99,8 +144,11 @@ onMounted(() => {
   userPermissions.value = permissions ? JSON.parse(permissions) : []
   userType.value = type ? parseInt(type) : 0
 
+  // Fetch notification data
+  fetchNotificationData()
+
   // Initialize accordion state based on active routes
-  accordionValue.value = filteredRoutes.value.map(r => isItemExpanded(r))
+  accordionValue.value = filteredRoutes.value.map((r) => isItemExpanded(r))
 })
 
 const isRouteActive = (item: INavigationRoute): boolean => {
@@ -111,7 +159,7 @@ const isItemExpanded = (item: INavigationRoute): boolean => {
   if (!item.children) return false
 
   const isCurrentItemActive = isRouteActive(item)
-  const isChildActive = !!item.children.find(child =>
+  const isChildActive = !!item.children.find((child) =>
     child.children ? isItemExpanded(child) : isRouteActive(child)
   )
 
@@ -119,16 +167,16 @@ const isItemExpanded = (item: INavigationRoute): boolean => {
 }
 
 const logout = async () => {
-    const type =localStorage.getItem('type')
-    if(type ==2 ){
-      authStore.warehoushandleLogout()
-    }else
-     authStore.adminhandleLogout()
+  const type = localStorage.getItem('type')
+  if (type == '2') {
+    authStore.warehoushandleLogout()
+  } else {
+    authStore.adminhandleLogout()
+  }
 
-    localStorage.removeItem('userPermissions')
-    localStorage.removeItem('type')
-    router.push({ name: 'login' })
-
+  localStorage.removeItem('userPermissions')
+  localStorage.removeItem('type')
+  router.push({ name: 'login' })
 }
 </script>
 

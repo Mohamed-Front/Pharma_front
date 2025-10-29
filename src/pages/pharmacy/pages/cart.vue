@@ -1,7 +1,6 @@
 <template>
   <div class="bg-gray-100 min-h-screen p-4 sm:p-8 font-[Inter]">
     <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
-      <!-- Order Summary Card -->
       <div class="flex-shrink-0 w-full lg:w-96 bg-white rounded-3xl shadow-lg p-6 flex flex-col items-stretch">
         <div class="flex items-center border-b pb-4 mb-4">
           <h2 class="text-xl font-bold">{{ t('cart.orderDetails') }}</h2>
@@ -32,15 +31,8 @@
         </div>
       </div>
 
-      <!-- Products List Card -->
       <div class="flex-grow w-full bg-white rounded-3xl shadow-lg p-6 flex flex-col">
-        <div class="flex items-center border-b pb-4 mb-4">
-          <h2 class="text-xl font-bold">{{ t('cart.requestedItems') }}</h2>
-          <i class="pi pi-box text-green-600 text-2xl mx-2"></i>
-        </div>
-
-        <!-- Tabs for All and Warehouses -->
-        <div class="flex flex-wrap gap-2 mb-6">
+        <div class="flex flex-wrap gap-2 mb-6 border-b pb-4">
           <button
             :class="[
               'px-4 py-2 rounded-lg shadow-sm border',
@@ -67,28 +59,34 @@
           </button>
         </div>
 
-        <!-- Loading State -->
         <div v-if="loading" class="flex justify-center mb-10">
           <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="4" />
         </div>
 
-        <!-- Empty Cart State -->
         <div v-else-if="!loading && cartItems.length === 0" class="text-center text-gray-600 py-8">
           <p>{{ t('cart.empty') }}</p>
         </div>
 
-        <!-- Product Items by Warehouse -->
-        <div v-else>
+        <div v-else class="mb-8">
+          <div class="flex items-center pb-4 mb-4">
+            <h2 class="text-xl font-bold">{{ t('cart.requestedItems') }} ({{ nonGiftItemsCount }})</h2>
+            <i class="pi pi-box text-green-600 text-2xl mx-2"></i>
+          </div>
+
+          <div v-if="nonGiftItemsCount === 0" class="text-center text-gray-500 p-4 border rounded-xl">
+              {{ t('cart.noPurchasedItems') }}
+          </div>
+
           <div
             v-for="warehouse in filteredWarehouses"
             :key="warehouse.warehouse_id"
             class="mb-6"
           >
-            <h3 class="text-lg font-semibold text-gray-700 mb-4" v-if="selectedTab !== 'all'">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4" v-if="selectedTab !== 'all' && getNonGiftItems(warehouse).length > 0">
               {{ warehouse.name }}
             </h3>
             <div
-              v-for="item in warehouse.items"
+              v-for="item in getNonGiftItems(warehouse)"
               :key="item.id"
               class="flex flex-col sm:flex-row items-center justify-between border-b pb-4 mb-4 last:border-b-0 last:mb-0"
             >
@@ -119,20 +117,43 @@
                   <p v-if="item.total_discounts > 0" class="text-sm text-red-500 mt-1">
                     {{ t('cart.discount') }}: -{{ item.total_discounts }} {{ t('currency') }}
                   </p>
-                  <!-- Active Offers Display -->
-                  <div v-if="item.product.has_active_offer && item.product.active_offers?.length" class="mt-2">
+
+                  <div v-if="item.product.has_active_offer && item.product.active_offers?.length" class="mt-3 space-y-2">
                     <div
                       v-for="offer in item.product.active_offers"
-                      :key="offer.description"
-                      class="bg-green-50 text-green-800 text-xs font-medium px-3 py-2 rounded-lg mt-1"
+                      :key="offer.id"
+                      class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 text-green-800 text-xs font-medium p-3 rounded-lg"
+                      :class="{ 'ring-2 ring-green-500': qualifiesForGift(item.quantity, offer) }"
                     >
-                      <p>{{ offer.description }}</p>
-                      <p>Discount: {{ offer.discount_value }} {{ offer.discount_type === 2 ? t('currency') : '%' }}</p>
-                      <p>Valid until: {{ formatDate(offer.end_date) }}</p>
+                      <p class="font-semibold">{{ offer.description }}</p>
+
+                      <p class="mt-1">
+                        <i class="pi pi-gift mr-1"></i>
+                        <strong>{{ t('cart.gift') }}:</strong> {{ offer.gift_quantity }} × {{ offer.gift_product?.commercial_name || t('cart.unknownGift') }}
+                      </p>
+
+                      <p>
+                        <strong>{{ t('cart.minLimit') }}:</strong> {{ offer.min_limit }} {{ getUnit(offer.quantity_unit) }}
+                        <span class="mx-2">|</span>
+                        <strong>{{ t('cart.maxLimit') }}:</strong> {{ offer.max_limit }} {{ getUnit(offer.quantity_unit) }}
+                      </p>
+
+                      <p v-if="qualifiesForGift(item.quantity, offer)" class="text-green-700 font-bold mt-1">
+                        <i class="pi pi-check-circle mr-1"></i>
+                        {{ t('cart.eligibleGifts', { count: calculateEligibleGifts(item.quantity, offer) }) }}
+                      </p>
+                      <p v-else class="text-orange-600 text-xs">
+                        {{ t('cart.needMore', { needed: offer.min_limit - item.quantity }) }}
+                      </p>
+
+                      <p class="text-xs text-gray-600 mt-1">
+                        {{ t('cart.validUntil') }}: {{ formatDate(offer.end_date) }}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
+
               <div class="flex items-center w-full sm:w-auto justify-between sm:justify-start">
                 <div class="flex items-center ml-4">
                   <span class="font-bold text-lg">{{ item.total_price }} {{ t('currency') }}</span>
@@ -165,6 +186,77 @@
             </div>
           </div>
         </div>
+
+        <hr class="my-8 border-t border-gray-200" v-if="giftItemsCount > 0" />
+
+        <div v-if="giftItemsCount > 0">
+          <div class="flex items-center pb-4 mb-4">
+            <h2 class="text-xl font-bold text-purple-700">{{ t('cart.eligibleGiftsTitle') }} ({{ giftItemsCount }})</h2>
+            <i class="pi pi-gift text-purple-600 text-2xl mx-2"></i>
+          </div>
+
+          <div
+            v-for="warehouse in filteredWarehouses"
+            :key="warehouse.warehouse_id"
+            class="mb-6"
+          >
+             <h3 class="text-lg font-semibold text-gray-700 mb-4" v-if="selectedTab !== 'all' && getGiftItems(warehouse).length > 0">
+              {{ warehouse.name }}
+            </h3>
+            <div
+              v-for="item in getGiftItems(warehouse)"
+              :key="item.id"
+              class="flex flex-col sm:flex-row items-center justify-between border border-purple-200 bg-purple-50 rounded-xl p-4 mb-4"
+            >
+              <div class="flex items-center w-full sm:w-auto mb-4 sm:mb-0">
+                <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
+                  <img
+                    v-if="item.product.media?.[0]?.url"
+                    :src="item.product.media[0].url"
+                    :alt="item.product.commercial_name"
+                    class="w-full h-full object-cover rounded-xl opacity-70"
+                    loading="lazy"
+                    @error="handleImageError"
+                  />
+                  <i v-else :class="['pi', getProductIcon(item.product.scientific_structure[0]), 'text-purple-600 text-2xl']"></i>
+                </div>
+                <div class="flex-grow mx-4">
+                  <h3 class="font-bold text-lg text-purple-800">{{ item.product.commercial_name }}</h3>
+                  <p class="text-sm text-purple-600">{{ t('cart.gift') }} - {{ t('cart.complimentary') }}</p>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                     <span
+                      v-for="tag in item.product.scientific_structure"
+                      :key="tag"
+                      class="bg-purple-200 text-purple-800 text-xs font-medium px-3 py-1 rounded-full"
+                    >
+                      {{ tag }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center w-full sm:w-auto justify-between sm:justify-start text-purple-800">
+                <span class="font-bold text-lg mr-4">{{ t('cart.free') }}</span>
+
+                <button
+                    class="p-2 rounded-full mx-4 text-gray-400 cursor-not-allowed"
+                    disabled
+                >
+                    <i class="pi pi-trash text-lg"></i>
+                </button>
+                <div class="flex items-center bg-purple-200 rounded-full px-2 py-1 opacity-70 cursor-not-allowed">
+                  <button class="w-8 h-8 rounded-full text-purple-600 font-bold" disabled>
+                    +
+                  </button>
+                  <span class="px-4 font-bold text-lg">{{ item.quantity }}</span>
+                  <button class="w-8 h-8 rounded-full text-purple-600 font-bold" disabled>
+                    -
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <Toast />
@@ -175,7 +267,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { useI18n } from 'vue-i18n';
-import axios from 'axios';
+import axios from 'axios'; // تأكد من استيراد axios
 import ProgressSpinner from 'primevue/progressspinner';
 import Toast from 'primevue/toast';
 import { useRouter } from 'vue-router';
@@ -192,7 +284,43 @@ const selectedTab = ref('all');
 const loading = ref(false);
 const cartLoading = ref({});
 
-// Computed property for filtered warehouses
+// --- Helper Functions for UI Logic (No changes needed here) ---
+
+// Get non-gift items from a specific warehouse
+const getNonGiftItems = (warehouse) => {
+  return warehouse.items.filter(item => item.is_gift !== 1);
+};
+
+// Get gift items from a specific warehouse
+const getGiftItems = (warehouse) => {
+  return warehouse.items.filter(item => item.is_gift === 1);
+};
+
+// Count items in the current filtered view
+const nonGiftItemsCount = computed(() => {
+  return filteredWarehouses.value.flatMap(w => getNonGiftItems(w)).length;
+});
+
+const giftItemsCount = computed(() => {
+  return filteredWarehouses.value.flatMap(w => getGiftItems(w)).length;
+});
+
+
+// Helper function to get the correct list of NON-GIFT items for the summary calculations
+const getSummaryItems = (warehousesList, tab) => {
+  let items = [];
+  if (tab === 'all') {
+    items = warehousesList.flatMap(w => w.items);
+  } else {
+    const warehouse = warehousesList.find(w => w.warehouse_id === tab);
+    items = warehouse ? warehouse.items : [];
+  }
+  // IMPORTANT: Filter out gift items for calculation of subtotal/discount/total
+  return items.filter(item => item.is_gift !== 1);
+};
+
+
+// Computed property for filtered warehouses (only affects display of items by tab)
 const filteredWarehouses = computed(() => {
   if (selectedTab.value === 'all') {
     return warehouses.value;
@@ -200,41 +328,34 @@ const filteredWarehouses = computed(() => {
   return warehouses.value.filter(w => w.warehouse_id === selectedTab.value);
 });
 
-// Computed properties for order summary
+// Computed properties for order summary (Only use non-gift items for calculation)
 const subtotal = computed(() => {
-  if (selectedTab.value === 'all') {
-    return warehouses.value.reduce((sum, w) => sum + (w.original_price || 0), 0);
-  }
-  const warehouse = warehouses.value.find(w => w.warehouse_id === selectedTab.value);
-  return warehouse ? warehouse.original_price || 0 : 0;
+  const items = getSummaryItems(warehouses.value, selectedTab.value);
+  return items.reduce((sum, item) => sum + (item.original_price || 0), 0);
 });
 
 const discount = computed(() => {
-  if (selectedTab.value === 'all') {
-    return warehouses.value.reduce((sum, w) => sum + (w.total_discounts || 0), 0);
-  }
-  const warehouse = warehouses.value.find(w => w.warehouse_id === selectedTab.value);
-  return warehouse ? warehouse.total_discounts || 0 : 0;
+  const items = getSummaryItems(warehouses.value, selectedTab.value);
+  return items.reduce((sum, item) => sum + (item.total_discounts || 0), 0);
 });
 
 const finalTotal = computed(() => {
-  if (selectedTab.value === 'all') {
-    return warehouses.value.reduce((sum, w) => sum + (w.total_price || 0), 0);
-  }
-  const warehouse = warehouses.value.find(w => w.warehouse_id === selectedTab.value);
-  return warehouse ? warehouse.total_price || 0 : 0;
+  const items = getSummaryItems(warehouses.value, selectedTab.value);
+  return items.reduce((sum, item) => sum + (item.total_price || 0), 0);
 });
+
 
 // Map scientific_structure to PrimeVue icons
 const getProductIcon = (form) => {
   const formMap = {
     Paracetamol: 'pi-tablet',
-    Caffeine: 'pi-bolt'
+    Caffeine: 'pi-bolt',
+    'First Scientific Structure': 'pi-capsules'
   };
   return formMap[form] || 'pi-tablet';
 };
 
-// Format date for display
+// Format date
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -243,131 +364,119 @@ const formatDate = (dateString) => {
 // Handle image error
 const handleImageError = (event) => {
   event.target.style.display = 'none';
-  event.target.nextElementSibling.style.display = 'block';
+  if (event.target.nextElementSibling) {
+    event.target.nextElementSibling.style.display = 'block';
+  }
 };
+
+// Unit mapping
+const getUnit = (unit) => {
+  const units = { 1: t('cart.unit'), 2: t('cart.box'), 3: t('cart.pack'), 5: t('cart.unit') };
+  return units[unit] || t('cart.unit');
+};
+
+// Check if user qualifies for gift
+const qualifiesForGift = (quantity, offer) => {
+  return quantity >= offer.min_limit;
+};
+
+// Calculate how many gifts user gets
+const calculateEligibleGifts = (quantity, offer) => {
+  if (!qualifiesForGift(quantity, offer)) return 0;
+  const sets = Math.floor(quantity / offer.min_limit);
+  const maxSets = offer.max_limit ? Math.floor(offer.max_limit / offer.min_limit) : sets;
+  const cappedSets = Math.min(sets, maxSets);
+
+  return cappedSets * offer.gift_quantity;
+};
+
+
+// --- API Handlers (Updated fetchCart) ---
 
 // Fetch cart data from API
 const fetchCart = async () => {
   loading.value = true;
   try {
+    // ⭐️ هذا هو الاستدعاء الفعلي لنقطة نهاية API
     const response = await axios.get('/api/cart/get');
+
     if (response.data.success && response.data.data) {
-      warehouses.value = response.data.data.warehouses.map((warehouse, index) => ({
+      warehouses.value = response.data.data.warehouses.map((warehouse) => ({
         ...warehouse,
-        name: warehouse.warehouse_name || `Warehouse ${warehouse.warehouse_id || index + 1}`,
+        name: warehouse.warehouse_name || `Warehouse ${warehouse.warehouse_id}`,
+        // Sort items: gifts (1) to the end of the list for better non-gift grouping/display.
         items: warehouse.items.map(item => ({
           ...item,
           description: item.description || t('cart.defaultDescription'),
-        })),
+        })).sort((a, b) => a.is_gift - b.is_gift),
       }));
       cartItems.value = warehouses.value.flatMap(w => w.items);
     } else {
       warehouses.value = [];
       cartItems.value = [];
-      toast.add({
-        severity: 'warn',
-        summary: t('warning'),
-        detail: t('cart.empty'),
-        life: 3000,
-      });
+      toast.add({ severity: 'warn', summary: t('warning'), detail: t('cart.empty'), life: 3000 });
     }
   } catch (error) {
     warehouses.value = [];
     cartItems.value = [];
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: t('cart.fetchError'),
-      life: 3000,
-    });
+    // تحقق من وجود رسالة خطأ محددة أو استخدم الرسالة العامة
+    const errorMessage = error.response?.data?.message || t('cart.fetchError');
+    toast.add({ severity: 'error', summary: t('error'), detail: errorMessage, life: 3000 });
     console.error('Error fetching cart:', error);
   } finally {
     loading.value = false;
   }
 };
 
-// Remove item from cart
+
+// Remove item from cart (Only non-gift items)
 const removeItem = async (id) => {
+  const item = cartItems.value.find(i => i.id === id);
+  if (item && item.is_gift === 1) return; // Cannot remove gifts
+
   cartLoading.value[id] = true;
   try {
-    const item = cartItems.value.find(item => item.id === id);
-    if (!item) return;
-    const response = await axios.post('/api/cart/remove/item', { item_id: item.id });
+    const response = await axios.post('/api/cart/remove/item', { item_id: id });
     if (response.data.success) {
-      warehouses.value = warehouses.value.map(w => ({
-        ...w,
-        items: w.items.filter(item => item.id !== id),
-        original_price: w.items.filter(item => item.id !== id).reduce((sum, item) => sum + (item.original_price || 0), 0),
-        total_discounts: w.items.filter(item => item.id !== id).reduce((sum, item) => sum + (item.total_discounts || 0), 0),
-        total_price: w.items.filter(item => item.id !== id).reduce((sum, item) => sum + (item.total_price || 0), 0),
-      })).filter(w => w.items.length > 0);
-      cartItems.value = cartItems.value.filter(item => item.id !== id);
-      toast.add({
-        severity: 'success',
-        summary: t('success'),
-        detail: t('cart.removeSuccess'),
-        life: 3000,
-      });
-      fetchCart();
+      await fetchCart();
+      toast.add({ severity: 'success', summary: t('success'), detail: t('cart.removeSuccess'), life: 3000 });
     } else {
       throw new Error(response.data.message || t('cart.removeError'));
     }
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: error.message || t('cart.removeError'),
-      life: 3000,
-    });
-    console.error('Error removing item:', error);
+    toast.add({ severity: 'error', summary: t('error'), detail: error.message || t('cart.removeError'), life: 3000 });
   } finally {
-    cartLoading.value[id] = false;
+    delete cartLoading.value[id];
   }
 };
 
-// Increment item quantity
+// Increment quantity (Only non-gift items)
 const incrementQuantity = async (id) => {
+  const item = cartItems.value.find(i => i.id === id);
+  if (!item || item.is_gift === 1) return; // Cannot change gift quantity
+
   cartLoading.value[id] = true;
-  const item = cartItems.value.find(item => item.id === id);
-  if (!item) return;
   try {
     const response = await axios.post('/api/cart/add/item', {
       product_id: item.product_id,
       quantity: item.quantity + 1,
     });
     if (response.data.success) {
-      item.quantity++;
-      item.original_price = item.product.price * item.quantity;
-      item.total_price = item.original_price - (item.total_discounts || 0);
-      updateWarehouseTotals(item.product.warehouse_id);
-      toast.add({
-        severity: 'success',
-        summary: t('success'),
-        detail: t('cart.updateSuccess'),
-        life: 3000,
-      });
-      fetchCart();
-    } else {
-      throw new Error(response.data.message || t('cart.updateError'));
+      await fetchCart();
+      toast.add({ severity: 'success', summary: t('success'), detail: t('cart.updateSuccess'), life: 3000 });
     }
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: error.message || t('cart.updateError'),
-      life: 3000,
-    });
-    fetchCart();
-    console.error('Error incrementing quantity:', error);
+    toast.add({ severity: 'error', summary: t('error'), detail: error.message || t('cart.updateError'), life: 3000 });
   } finally {
-    cartLoading.value[id] = false;
+    delete cartLoading.value[id];
   }
 };
 
-// Decrement item quantity
+// Decrement quantity (Only non-gift items)
 const decrementQuantity = async (id) => {
-  const item = cartItems.value.find(item => item.id === id);
-  if (!item || item.quantity <= 1) return;
+  const item = cartItems.value.find(i => i.id === id);
+  if (!item || item.quantity <= 1 || item.is_gift === 1) return; // Cannot change gift quantity
+
   cartLoading.value[id] = true;
   try {
     const response = await axios.post('/api/cart/add/item', {
@@ -375,105 +484,51 @@ const decrementQuantity = async (id) => {
       quantity: item.quantity - 1,
     });
     if (response.data.success) {
-      item.quantity--;
-      item.original_price = item.product.price * item.quantity;
-      item.total_price = item.original_price - (item.total_discounts || 0);
-      updateWarehouseTotals(item.product.warehouse_id);
-      toast.add({
-        severity: 'success',
-        summary: t('success'),
-        detail: t('cart.updateSuccess'),
-        life: 3000,
-      });
-      fetchCart();
-    } else {
-      throw new Error(response.data.message || t('cart.updateError'));
+      await fetchCart();
+      toast.add({ severity: 'success', summary: t('success'), detail: t('cart.updateSuccess'), life: 3000 });
     }
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: error.message || t('cart.updateError'),
-      life: 3000,
-    });
-    console.error('Error decrementing quantity:', error);
+    toast.add({ severity: 'error', summary: t('error'), detail: error.message || t('cart.updateError'), life: 3000 });
   } finally {
-    cartLoading.value[id] = false;
+    delete cartLoading.value[id];
   }
 };
 
-// Update warehouse totals after quantity changes
-const updateWarehouseTotals = (warehouseId) => {
-  const warehouse = warehouses.value.find(w => w.warehouse_id === warehouseId);
-  if (!warehouse) return;
-  warehouse.original_price = warehouse.items.reduce((sum, item) => sum + (item.original_price || 0), 0);
-  warehouse.total_discounts = warehouse.items.reduce((sum, item) => sum + (item.total_discounts || 0), 0);
-  warehouse.total_price = warehouse.items.reduce((sum, item) => sum + (item.total_price || 0), 0);
-};
-
-// Proceed to checkout
+// Proceed to checkout (Uses all items in the filtered warehouses)
 const proceedToCheckout = async () => {
-  if (cartItems.value.length === 0) {
-    toast.add({
-      severity: 'warn',
-      summary: t('warning'),
-      detail: t('cart.empty'),
-      life: 3000,
-    });
+  const activeWarehouses = filteredWarehouses.value.map(w => w.warehouse_id);
+
+  if (activeWarehouses.length === 0) {
+    toast.add({ severity: 'warn', summary: t('warning'), detail: t('cart.empty'), life: 3000 });
     return;
   }
 
   try {
-    // Prepare the select string with unique warehouse IDs
-    const select = [...new Set(
-      filteredWarehouses.value
-        .flatMap(warehouse => warehouse.items)
-        .map(item => item.product.warehouse_id)
-    )].join(',');
+    const select = activeWarehouses.join(',');
 
-    // Show processing toast
-    toast.add({
-      severity: 'info',
-      summary: t('info'),
-      detail: t('cart.checkoutProcessing'),
-      life: 3000,
-    });
+    toast.add({ severity: 'info', summary: t('info'), detail: t('cart.checkoutProcessing'), life: 3000 });
 
-    // Make API request to place order with select as query parameter
+    // ⭐️ استدعاء API لإنشاء الطلب
     const response = await axios.post(`/api/order?select=${encodeURIComponent(select)}`);
-
     if (response.data.success) {
-      toast.add({
-        severity: 'success',
-        summary: t('success'),
-        detail: t('cart.orderSuccess'),
-        life: 3000,
-      });
-      fetchCart();
+      toast.add({ severity: 'success', summary: t('success'), detail: t('cart.orderSuccess'), life: 3000 });
+      // Reset state after successful checkout
+      await fetchCart();
       selectedTab.value = 'all';
-      // Clear cart after successful order
-      warehouses.value = [];
-      cartItems.value = [];
     } else {
       throw new Error(response.data.message || t('cart.checkoutError'));
     }
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: error.message || t('cart.checkoutError'),
-      life: 3000,
-    });
-    console.error('Error proceeding to checkout:', error);
+    toast.add({ severity: 'error', summary: t('error'), detail: error.message || t('cart.checkoutError'), life: 3000 });
   }
 };
 
-// Select tab (All or warehouse)
+// Select tab
 const selectTab = (tab) => {
   selectedTab.value = tab;
 };
 
-// Initialize data
+// Initialize
 onMounted(fetchCart);
 </script>
 

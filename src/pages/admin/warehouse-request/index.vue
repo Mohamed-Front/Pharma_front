@@ -210,7 +210,7 @@ const openNew = () => {
             <div class="flex gap-2">
               <span class="p-input-icon-left">
                 <i class="pi pi-search" />
-                <InputText v-model="searchQuery" :placeholder="t('warehouseRequest.search')" />
+                <InputText v-model="searchQuery" :placeholder="$t('warehouseRequest.search')" />
               </span>
               <Button
                 :label="t('warehouseRequest.export')"
@@ -383,7 +383,7 @@ const openNew = () => {
               </span>
 
               <span class="p-paginator-rpp-options">
-                <Dropdown 
+                <Dropdown
                   v-model="rowsPerPage"
                   :options="[5, 10, 20, 30]"
                   @change="changeRowsPerPage"

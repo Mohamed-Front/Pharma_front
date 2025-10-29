@@ -1,6 +1,5 @@
-```vue
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
@@ -58,13 +57,27 @@ const fetchOffers = async (page = 1) => {
           pharmaceutical_form: item.pharmaceutical_form || 'Unknown',
           scientific_structure: item.scientific_structure || [],
           discount: item.active_offers.length > 0
-            ? item.active_offers.map(offer => ({
-                id: offer.id,
-                display: offer.discount_type === 1
-                  ? `${offer.discount_value}% OFF`
-                  : `$${offer.discount_value} OFF`,
-                description: offer.description || 'No description',
-              }))
+            ? item.active_offers.map(offer => {
+                let display = '';
+                // Logic for Discount Type 3: Gift Product
+                if (offer.discount_type === 3) {
+                  const giftName = offer.gift_product?.commercial_name || 'Unknown Gift';
+                  const giftQty = offer.gift_quantity || 1;
+                  display = ` ${giftQty}x ${giftName}`;
+                } else if (offer.discount_type === 1) {
+                  display = `${offer.discount_value}% OFF`;
+                } else if (offer.discount_type === 2) {
+                  display = `$${offer.discount_value} OFF`;
+                }
+
+                return {
+                  id: offer.id,
+                  display: display, // The updated offer display string
+                  description: offer.description || 'No description',
+                  min_limit: offer.min_limit, // New: Minimum purchase limit
+                  max_limit: offer.max_limit, // New: Maximum purchase limit
+                };
+              })
             : [], // Map active_offers to a display-friendly format
           price: parseFloat(item.price) || 0,
           media: item.media || [{ url: '/images/fallback-product.jpg' }],
@@ -177,7 +190,6 @@ const handleImageError = (event) => {
 };
 
 // Watch for search query changes
-import { watch } from 'vue';
 watch(searchQuery, () => {
   currentPage.value = 1;
   fetchOffers(1);
@@ -192,35 +204,29 @@ onMounted(() => {
 <template>
   <div class="bg-gray-50 min-h-screen">
     <div class="py-10 px-4 max-w-7xl mx-auto">
-      <!-- Header -->
       <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-8 text-center">
-        {{ t('offers.title') }}
+        {{ $t('navigation.offers') }}
       </h1>
 
-      <!-- Search Bar -->
       <div class="flex justify-center mb-8">
         <div class="relative w-full max-w-lg">
           <InputText
             v-model="searchQuery"
-            :placeholder="t('search.placeholder')"
+            :placeholder="t('navbar.search')"
             class="w-full p-3 pr-12 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             aria-label="Search offers"
           />
-          <i class="pi pi-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" aria-label="Search icon" />
         </div>
       </div>
 
-      <!-- Loading State -->
       <div v-if="loading" class="flex justify-center mb-10">
         <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="4" />
       </div>
 
-      <!-- Empty State -->
       <div v-else-if="!loading && filteredProducts.length === 0" class="text-center text-gray-500 py-10">
         {{ t('error.noOffers') }}
       </div>
 
-      <!-- Product Grid -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         <div
           v-for="product in filteredProducts"
@@ -266,22 +272,38 @@ onMounted(() => {
               {{ tag }}
             </span>
           </div>
-          <div class="flex items-center justify-between w-full mt-auto mb-4">
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="offer in product.discount"
-                :key="offer.id"
-                class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full"
-              >
-                {{ offer.display }} ({{  offer.description.slice(0,25) }})
-              </span>
-              <span
-                v-if="!product.discount.length"
-                class="bg-gray-100 text-gray-600 text-xs font-semibold px-2 py-1 rounded-full"
-              >
-                {{ t('noOffers') }}
-              </span>
+
+          <div class="flex flex-col gap-2 mb-4">
+            <div
+              v-for="offer in product.discount"
+              :key="offer.id"
+              class="flex flex-col p-2 rounded-lg"
+              :class="{'bg-green-100': offer.min_limit || offer.max_limit, 'bg-red-100': !offer.min_limit && !offer.max_limit}"
+            >
+              <div class="flex items-center gap-2">
+                <span class="text-green-800 text-sm font-bold">
+                  {{ offer.display }}
+                </span>
+                <span class="text-gray-600 text-xs truncate" :title="offer.description">({{ offer.description.slice(0, 25) }}{{ offer.description.length > 25 ? '...' : '' }})</span>
+              </div>
+              <div class="flex gap-4 text-xs text-gray-700 mt-1">
+                <span v-if="offer.min_limit !== null">
+                  {{ $t('offerss.minLimit') }}: {{ offer.min_limit }}
+                </span>
+                <span v-if="offer.max_limit !== null">
+                  {{ $t('offerss.maxLimit') }}: {{ offer.max_limit }}
+                </span>
+              </div>
             </div>
+            <span
+              v-if="!product.discount.length"
+              class="bg-gray-100 text-gray-600 text-xs font-semibold px-2 py-1 rounded-full w-fit"
+            >
+              {{ t('noOffers') }}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between w-full mt-auto mb-4">
             <span class="text-lg md:text-xl font-bold text-green-600">
               {{ product.price +'$' }}
             </span>
@@ -297,7 +319,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Pagination -->
       <div v-if="!loading && totalPages > 1" class="flex justify-center items-center gap-2">
         <Button
           :disabled="currentPage === 1"
@@ -361,4 +382,3 @@ onMounted(() => {
   }
 }
 </style>
-```

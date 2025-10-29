@@ -258,7 +258,7 @@ onMounted(() => {
             <div class="flex gap-2">
               <span class="p-input-icon-left">
                 <i class="pi pi-search" />
-                <InputText v-model="searchQuery" :placeholder="t('category.search')" />
+                <InputText v-model="searchQuery"  />
               </span>
               <Button
                 v-can="'create categories'"
@@ -414,7 +414,7 @@ onMounted(() => {
               </span>
 
               <span class="p-paginator-rpp-options">
-                <Dropdown 
+                <Dropdown
                   v-model="rowsPerPage"
                   :options="[5, 10, 20, 30]"
                   @change="changeRowsPerPage"

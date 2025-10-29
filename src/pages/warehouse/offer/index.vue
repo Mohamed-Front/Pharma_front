@@ -200,7 +200,7 @@ onMounted(() => {
             <div class="flex gap-2">
               <span class="p-input-icon-left">
                 <i class="pi pi-search" />
-                <InputText v-model="searchQuery" :placeholder="t('offer.search')" />
+                <InputText v-model="searchQuery" :placeholder="$t('offer.search')" />
               </span>
               <Button
                 v-can="'create offers'"
@@ -241,7 +241,7 @@ onMounted(() => {
             <Column selection-mode="multiple" header-style="width: 3rem"></Column>
                 <Column field="product.commercial_name" :header="t('offer.product')" :sortable="true" header-style="width:20%; min-width:12rem;">
               <template #body="slotProps">
-                {{ slotProps.data.product.commercial_name }}
+                {{ slotProps.data.product?.commercial_name }}
               </template>
             </Column>
             <Column field="description" :header="t('offer.description')" :sortable="true" header-style="width:20%; min-width:12rem;">

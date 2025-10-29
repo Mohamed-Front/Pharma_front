@@ -6,7 +6,7 @@ axios.defaults.baseURL = import.meta.env.VITE_URI || 'http://localhost:8000';
 axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
 axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
-axios.defaults.headers.common['local'] = localStorage.getItem('appLang') || 'en';
+axios.defaults.headers.common['Accept-Language'] = localStorage.getItem('appLang') || 'en';
 
 // Request interceptor
 axios.interceptors.request.use((config) => {

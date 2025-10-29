@@ -54,11 +54,9 @@
             <i class="pi pi-shopping-cart text-xl"></i>
           </a>
           <!-- Notification Icon -->
-          <button v-if="authStore.pharmacyauthenticated" class="p-2 text-gray-800 hover:text-green-600 focus:outline-none">
-            <i class="pi pi-bell text-xl"></i>
-          </button>
+          <Notification></Notification>
           <!-- Login Button -->
-          <a v-if="!authStore.pharmacyauthenticated" href="/auth/login" class="bg-green-600 mx-4 text-white font-bold py-2 px-3 rounded-lg flex items-center gap-2 transition-colors hover:bg-green-700">
+          <a v-if="!authStore.pharmacyauthenticated" href="/auth/login" class="bg-green-600 mx-4 text-white font-bold py-2 px-xe3 rounded-lg flex items-center gap-2 transition-colors hover:bg-green-700">
             <i class="pi pi-sign-in text-sm"></i>
             {{ t('navbar.login') }}
           </a>
@@ -123,6 +121,7 @@ import { useI18n } from 'vue-i18n';
 import 'primeicons/primeicons.css';
 import LocaleSelect from '../../../components/LocaleSelect.vue';
 import SearchBar from './SearchBar.vue';
+import Notification from './Notification.vue';
 import { useAuthStore } from '@/stores/auth';
 
 // Localization

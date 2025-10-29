@@ -47,6 +47,12 @@ const routes: Array<RouteRecordRaw> = [
         path: '/pharmacy-warehouses',
         component: () => import('../pages/pharmacy/pages/warehouses.vue'),
       },
+      {
+        name: 'pharmacy-notifications',
+        path: '/pharmacy-notifications',
+        component: () => import('../pages/pharmacy/pages/notification.vue'),
+      },
+
 
 
        {
@@ -54,6 +60,12 @@ const routes: Array<RouteRecordRaw> = [
         path: '/pharmacy-category-details/:id',
         component: () => import('../pages/pharmacy/pages/category-details.vue'),
       },
+      {
+        name: 'serach-product-detail',
+        path: '/product-detail/:id',
+        component: () => import('../pages/pharmacy/pages/product-detail.vue'),
+      },
+
         {
         name: 'pharmacy-warehouse-details',
         path: '/pharmacy-warehouse-details/:id',
@@ -74,6 +86,17 @@ const routes: Array<RouteRecordRaw> = [
         name: 'pharmacy-profile',
         path: '/pharmacy-profile',
         component: () => import('../pages/pharmacy/pages/profile.vue'),
+      },
+
+        {
+        name: 'terms_conditions',
+        path: '/terms-condition',
+        component: () => import('../pages/pharmacy/pages/Terms_Conditions.vue'),
+      },
+       {
+        name: 'Politics_privacy',
+        path: '/politics-privacy',
+        component: () => import('../pages/pharmacy/pages/Politics_privacy.vue'),
       },
       UIRoute,
     ],
@@ -114,6 +137,12 @@ const routes: Array<RouteRecordRaw> = [
         path: 'roles-update/:id',
         component: () => import('../pages/admin/roles/update.vue'),
       },
+       {
+        name: 'notification',
+        path: 'notification',
+        component: () => import('../pages/admin/notification/index.vue'),
+      },
+
       {
         name: 'roles-create',
         path: 'roles-create',
@@ -143,6 +172,11 @@ const routes: Array<RouteRecordRaw> = [
         name: 'categories',
         path: 'categories',
         component: () => import('../pages/admin/Categories/index.vue'),
+      },
+       {
+        name: 'settings',
+        path: 'settings',
+        component: () => import('../pages/admin/settings/pages/update.vue'),
       },
       {
         name: 'statistics',
@@ -185,11 +219,7 @@ const routes: Array<RouteRecordRaw> = [
           },
         ],
       },
-      {
-        name: 'settings',
-        path: 'settings',
-        children: [],
-      },
+
       UIRoute,
     ],
   },
@@ -235,6 +265,11 @@ const routes: Array<RouteRecordRaw> = [
         name: 'order',
         path: 'order',
         component: () => import('../pages/warehouse/order/index.vue'),
+      },
+      {
+        name: 'warehouse-notification',
+        path: 'warehouse-notification',
+        component: () => import('../pages/warehouse/notification/index.vue'),
       },
        {
         name: 'warehouse-profile',

@@ -325,7 +325,7 @@ onMounted(() => {
             <div class="flex gap-2">
               <span class="p-input-icon-left">
                 <i class="pi pi-search" />
-                <InputText v-model="searchQuery" :placeholder="t('scientificStructure.search')" />
+                <InputText v-model="searchQuery" :placeholder="$t('scientificStructure.search')" />
               </span>
               <Button
                 :label="t('scientificStructure.import')"

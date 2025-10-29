@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col md:flex-row items-center justify-center bg-gradient-to-r from-[#F6FAFF] to-[#F6FAFF] rounded-lg">
     <div
-      class="flex flex-col items-start p-12 md:p-16 w-full md:w-1/2 text-right rounded-lg rtl:text-right h-[85vh]"
+      class="flex flex-col  p-12 md:p-16 w-full md:w-1/2  rounded-lg  h-[85vh]"
       dir="rtl"
     >
       <div class="flex flex-col h-full justify-between w-full md:w-[90%]">

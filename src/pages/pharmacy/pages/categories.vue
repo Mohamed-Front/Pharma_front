@@ -203,10 +203,9 @@ onMounted(() => {
         <div class="relative w-full max-w-lg">
           <InputText
             v-model="searchQuery"
-            :placeholder="t('search.placeholder')"
+          :placeholder="t('navbar.search')"
             class="w-full p-3 pr-12 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
-          <i class="pi pi-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
         </div>
       </div>
 
