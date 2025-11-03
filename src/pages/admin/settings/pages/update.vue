@@ -1,4 +1,3 @@
-```vue
 <template>
   <va-card class="card">
     <div class="flex justify-center">
@@ -66,7 +65,7 @@
           </div>
         </div>
 
-        <!-- Google Map for Latitude and Longitude -->
+        <!-- Google Map -->
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">
             {{ $t('settings.mapLocation') }}
@@ -123,7 +122,6 @@
             {{ error.terms_and_conditions?.[0] }}
           </div>
         </div>
-
 
         <!-- Main Logo Upload -->
         <div class="mb-4">
@@ -265,6 +263,95 @@
           </div>
         </div>
 
+        <!-- Banners Upload -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700">
+            {{ $t('settings.banners') }} ({{ banners.length }})
+          </label>
+          <div class="flex justify-center mt-2">
+            <label
+              @dragover.prevent="handleDragOver('banners')"
+              @dragleave="handleDragLeave('banners')"
+              @drop.prevent="onBannerUpload($event)"
+              :class="{ 'border-blue-500 bg-blue-50': isDraggingBanners, 'border-gray-300': !isDraggingBanners }"
+              class="cursor-pointer w-full max-w-4xl rounded-xl border-2 border-dashed transition duration-300 p-6"
+            >
+              <input
+                type="file"
+                multiple
+                @change="onBannerUpload($event)"
+                accept="image/*"
+                class="hidden"
+                id="banners-upload"
+              />
+              <div v-if="banners.length === 0" class="flex flex-col items-center justify-center py-8">
+                <div class="bg-blue-100 p-4 rounded-full mb-4">
+                  <i class="pi pi-images text-blue-500 text-3xl"></i>
+                </div>
+                <p class="text-sm text-center text-gray-600 mb-1">
+                  <span class="text-blue-500 font-medium">{{ $t('settings.uploadBanners') }}</span> {{ $t('settings.orDragDrop') }}
+                </p>
+                <p class="text-xs text-gray-400">{{ $t('settings.fileTypes') }}</p>
+              </div>
+
+              <!-- Banners Grid -->
+              <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+                <div
+                  v-for="(banner, index) in banners"
+                  :key="index"
+                  class="relative group"
+                >
+                  <img
+                    :src="banner.preview"
+                    alt="Banner Preview"
+                    class="w-full h-32 object-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center transition-all duration-300 rounded-lg">
+                    <div class="opacity-0 group-hover:opacity-100 space-x-2 transition-all duration-300">
+                      <button
+                        type="button"
+                        @click.stop="removeBanner(index)"
+                        class="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
+                      >
+                        <i class="pi pi-trash text-sm"></i>
+                      </button>
+                      <label
+                        class="bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 transition cursor-pointer"
+                      >
+                        <i class="pi pi-pencil text-sm"></i>
+                        <input
+                          type="file"
+                          @change="replaceBanner($event, index)"
+                          accept="image/*"
+                          class="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Add More Button -->
+                <label
+                  class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition h-32"
+                >
+                  <i class="pi pi-plus text-2xl text-gray-400 mb-1"></i>
+                  <span class="text-xs text-gray-500">{{ $t('settings.addMore') }}</span>
+                  <input
+                    type="file"
+                    multiple
+                    @change="onBannerUpload($event)"
+                    accept="image/*"
+                    class="hidden"
+                  />
+                </label>
+              </div>
+            </label>
+          </div>
+          <div v-if="errors.banners" class="mt-1 text-red-500 text-sm">
+            {{ errors.banners }}
+          </div>
+        </div>
+
         <!-- Submit Button -->
         <Button
           type="submit"
@@ -347,6 +434,7 @@ const errors = reactive({
   long: '',
   mainLogo: '',
   footerLogo: '',
+  banners: '',
 });
 
 const error = ref({});
@@ -356,13 +444,22 @@ const mainLogoPreview = ref(null);
 const footerLogoPreview = ref(null);
 const isDraggingMain = ref(false);
 const isDraggingFooter = ref(false);
+const isDraggingBanners = ref(false);
 const isSubmitting = ref(false);
+
+// Banners
+const banners = ref([]); // { file, preview }
+
+watch(appLang, (newLang) => {
+  locale.value = newLang;
+  localStorage.setItem('appLang', newLang);
+});
 
 /* ------------------------------------------------------------------ */
 /* Computed properties                                                */
 /* ------------------------------------------------------------------ */
 const mapCenter = computed(() => ({
-  lat: setting.value.lat ? parseFloat(setting.value.lat) : 33.5138, // Default: Damascus
+  lat: setting.value.lat ? parseFloat(setting.value.lat) : 33.5138,
   lng: setting.value.long ? parseFloat(setting.value.long) : 36.2765,
 }));
 
@@ -379,16 +476,9 @@ const isFormValid = computed(() => {
     !errors.lat &&
     !errors.long &&
     !errors.mainLogo &&
-    !errors.footerLogo
+    !errors.footerLogo &&
+    !errors.banners
   );
-});
-
-/* ------------------------------------------------------------------ */
-/* Watchers                                                           */
-/* ------------------------------------------------------------------ */
-watch(appLang, (newLang) => {
-  locale.value = newLang;
-  localStorage.setItem('appLang', newLang);
 });
 
 /* ------------------------------------------------------------------ */
@@ -420,6 +510,7 @@ const validateForm = () => {
   errors.location = setting.value.location.trim() ? '' : t('validation.locationRequired');
   errors.lat = setting.value.lat && !isNaN(parseFloat(setting.value.lat)) && parseFloat(setting.value.lat) >= -90 && parseFloat(setting.value.lat) <= 90 ? '' : t('validation.invalidLat');
   errors.long = setting.value.long && !isNaN(parseFloat(setting.value.long)) && parseFloat(setting.value.long) >= -180 && parseFloat(setting.value.long) <= 180 ? '' : t('validation.invalidLong');
+  errors.banners = banners.value.length > 0 ? '' : t('validation.atLeastOneBanner');
 };
 
 /* ------------------------------------------------------------------ */
@@ -450,6 +541,7 @@ const handleDragOver = (type) => {
     event.preventDefault();
     if (type === 'main') isDraggingMain.value = true;
     else if (type === 'footer') isDraggingFooter.value = true;
+    else if (type === 'banners') isDraggingBanners.value = true;
   };
 };
 
@@ -457,55 +549,54 @@ const handleDragLeave = (type) => {
   return () => {
     if (type === 'main') isDraggingMain.value = false;
     else if (type === 'footer') isDraggingFooter.value = false;
+    else if (type === 'banners') isDraggingBanners.value = false;
   };
 };
 
 const handleImageUpload = (file, type) => {
   if (!file.type.match('image.*')) {
-    errors[type === 'main' ? 'mainLogo' : 'footerLogo'] = t('settings.invalidImageType');
+    const key = type === 'main' ? 'mainLogo' : type === 'footer' ? 'footerLogo' : 'banners';
+    errors[key] = t('settings.invalidImageType');
     toast.add({
       severity: 'error',
       summary: t('error'),
       detail: t('settings.invalidImageType'),
       life: 3000,
     });
-    return;
+    return false;
   }
-  if (file.size > 2 * 1024 * 1024) { // 2MB limit
-    errors[type === 'main' ? 'mainLogo' : 'footerLogo'] = t('settings.imageTooLarge');
+  if (file.size > 2 * 1024 * 1024) {
+    const key = type === 'main' ? 'mainLogo' : type === 'footer' ? 'footerLogo' : 'banners';
+    errors[key] = t('settings.imageTooLarge');
     toast.add({
       severity: 'error',
       summary: t('error'),
       detail: t('settings.imageTooLarge'),
       life: 3000,
     });
-    return;
+    return false;
   }
-
-  errors[type === 'main' ? 'mainLogo' : 'footerLogo'] = '';
-  if (type === 'main') {
-    mainLogoFile.value = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      mainLogoPreview.value = e.target.result;
-    };
-    reader.readAsDataURL(file);
-    isDraggingMain.value = false;
-  } else if (type === 'footer') {
-    footerLogoFile.value = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      footerLogoPreview.value = e.target.result;
-    };
-    reader.readAsDataURL(file);
-    isDraggingFooter.value = false;
-  }
+  return true;
 };
 
 const onImageUpload = (event, type) => {
   const file = event.target.files?.[0] || event.dataTransfer?.files?.[0];
-  if (file) {
-    handleImageUpload(file, type);
+  if (file && handleImageUpload(file, type)) {
+    if (type === 'main') {
+      mainLogoFile.value = file;
+      const reader = new FileReader();
+      reader.onload = (e) => (mainLogoPreview.value = e.target.result);
+      reader.readAsDataURL(file);
+      isDraggingMain.value = false;
+      errors.mainLogo = '';
+    } else if (type === 'footer') {
+      footerLogoFile.value = file;
+      const reader = new FileReader();
+      reader.onload = (e) => (footerLogoPreview.value = e.target.result);
+      reader.readAsDataURL(file);
+      isDraggingFooter.value = false;
+      errors.footerLogo = '';
+    }
   }
 };
 
@@ -518,6 +609,49 @@ const removeImage = (type) => {
     footerLogoFile.value = null;
     footerLogoPreview.value = null;
     errors.footerLogo = '';
+  }
+};
+
+/* ------------------------------------------------------------------ */
+/* Banner Upload Handlers                                             */
+/* ------------------------------------------------------------------ */
+const onBannerUpload = (event) => {
+  const files = event.target.files || event.dataTransfer?.files;
+  if (!files?.length) return;
+
+  Array.from(files).forEach((file) => {
+    if (handleImageUpload(file, 'banners')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        banners.value.push({
+          file,
+          preview: e.target.result,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  isDraggingBanners.value = false;
+  errors.banners = '';
+};
+
+const removeBanner = (index) => {
+  banners.value.splice(index, 1);
+  validateForm();
+};
+
+const replaceBanner = (event, index) => {
+  const file = event.target.files?.[0];
+  if (file && handleImageUpload(file, 'banners')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      banners.value[index] = {
+        file,
+        preview: e.target.result,
+      };
+    };
+    reader.readAsDataURL(file);
   }
 };
 
@@ -543,6 +677,11 @@ const onSubmit = async () => {
   const body = new FormData();
   if (mainLogoFile.value) body.append('main_logo', mainLogoFile.value);
   if (footerLogoFile.value) body.append('footer_logo', footerLogoFile.value);
+
+  banners.value.forEach((banner) => {
+    body.append('banners[]', banner.file);
+  });
+
   body.append('email', setting.value.email);
   body.append('phone', setting.value.phone);
   body.append('location', setting.value.location);
@@ -557,8 +696,6 @@ const onSubmit = async () => {
     const res = await axios.post(`${apiUrl}/api/setting`, body, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-
-
 
     toast.add({
       severity: 'success',
@@ -602,15 +739,19 @@ onMounted(async () => {
       media: payload.media ?? [],
     };
 
-    // Initialize previews with existing images
+    // Load logos
     const mainLogo = setting.value.media.find((m) => m.name === 'main_logo');
-    if (mainLogo) {
-      mainLogoPreview.value = mainLogo.url;
-    }
+    if (mainLogo) mainLogoPreview.value = mainLogo.url;
+
     const footerLogo = setting.value.media.find((m) => m.name === 'footer_logo');
-    if (footerLogo) {
-      footerLogoPreview.value = footerLogo.url;
-    }
+    if (footerLogo) footerLogoPreview.value = footerLogo.url;
+
+    // Load banners
+    const bannerMedias = setting.value.media.filter((m) => m.name === 'banner');
+    banners.value = bannerMedias.map((m) => ({
+      file: null,
+      preview: m.url,
+    }));
 
     validateForm();
   } catch (e) {
@@ -627,7 +768,7 @@ onMounted(async () => {
 
 <style scoped>
 .card {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -646,31 +787,19 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Tailwind transition utilities */
+/* Hover effects */
 .group:hover .group-hover\:scale-105 {
   transform: scale(1.05);
 }
-.group:hover .group-hover\:bg-opacity-30 {
-  background-color: rgba(0, 0, 0, 0.3);
+.group:hover .group-hover\:bg-opacity-40 {
+  background-color: rgba(0, 0, 0, 0.4);
 }
 .group:hover .group-hover\:opacity-100 {
   opacity: 1;
 }
-.group:hover .group-hover\:translate-y-0 {
-  transform: translateY(0);
-}
 
-/* Button gradient animation */
-button.bg-blue-500:hover {
-  background-color: #2563eb;
-}
-
-/* RTL support for Arabic */
+/* RTL support */
 [dir="rtl"] .flex {
   direction: rtl;
 }
-[dir="rtl"] .text-right {
-  text-align: right;
-}
 </style>
-```

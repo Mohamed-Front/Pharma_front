@@ -20,13 +20,13 @@ const loading = ref(false);
 const products = ref([]);
 const isEditing = ref(false);
 
-// Form Data
+// Form Data (Quantity and Quantity Unit removed)
 const offerData = ref({
   product_id: null,
   min_limit: null,
   max_limit: null,
-  quantity: null,
-  quantity_unit: null,
+  // quantity: null, // Removed
+  // quantity_unit: null, // Removed
   discount_type: null, // 1 = %, 2 = Fixed, 3 = Gift
   discount_value: null,
   gift_product_id: null,
@@ -36,11 +36,11 @@ const offerData = ref({
   description: ''
 });
 
-// Validation Errors
+// Validation Errors (Quantity and Quantity Unit removed)
 const errors = ref({
   product_id: false,
-  quantity: false,
-  quantity_unit: false,
+  // quantity: false, // Removed
+  // quantity_unit: false, // Removed
   discount_type: false,
   discount_value: false,
   gift_product_id: false,
@@ -70,8 +70,8 @@ const fetchOffer = async (id) => {
 
     offerData.value = {
       product_id: data.product_id,
-      quantity: data.quantity,
-      quantity_unit: data.quantity_unit,
+      // quantity: data.quantity, // Removed
+      // quantity_unit: data.quantity_unit, // Removed
       discount_type: data.discount_type,
       discount_value: data.discount_value ?? null,
       gift_product_id: data.gift_product_id ?? null,
@@ -106,8 +106,8 @@ const validateForm = () => {
 
   // Required fields
   errors.value.product_id = !offerData.value.product_id;
-  errors.value.quantity = offerData.value.quantity === null || offerData.value.quantity === '';
-  errors.value.quantity_unit = !offerData.value.quantity_unit;
+  // errors.value.quantity = offerData.value.quantity === null || offerData.value.quantity === ''; // Removed
+  // errors.value.quantity_unit = !offerData.value.quantity_unit; // Removed
   errors.value.discount_type = !offerData.value.discount_type;
   errors.value.min_limit = offerData.value.min_limit === null || offerData.value.min_limit === '';
   errors.value.max_limit = offerData.value.max_limit === null || offerData.value.max_limit === '';
@@ -129,12 +129,14 @@ const validateForm = () => {
     }
   }
 
-  // Quantity within limits
+  // Quantity within limits (Logic removed as Quantity field is removed)
+  /*
   if (offerData.value.quantity != null && offerData.value.min_limit != null && offerData.value.max_limit != null) {
     if (offerData.value.quantity < offerData.value.min_limit || offerData.value.quantity > offerData.value.max_limit) {
       errors.value.quantity = true;
     }
   }
+  */
 
   // Discount value range
   if (offerData.value.discount_type === 1 && offerData.value.discount_value != null) {
@@ -180,6 +182,7 @@ const submitForm = async () => {
     if (payload.discount_type === 3) {
       delete payload.discount_value;
     }
+    // No need to delete quantity/unit since they are no longer in offerData
 
     if (isEditing.value) {
       await axios.put(`/api/offer/${route.params.id}`, payload);
@@ -228,7 +231,6 @@ onMounted(() => {
     <form @submit.prevent="submitForm" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <!-- Product -->
         <div class="space-y-2">
           <label for="product" class="block text-sm font-medium text-gray-700">
             {{ $t('offer.product') }} <span class="text-red-500">*</span>
@@ -246,46 +248,6 @@ onMounted(() => {
           />
         </div>
 
-        <!-- Quantity -->
-        <div class="space-y-2">
-          <label for="quantity" class="block text-sm font-medium text-gray-700">
-            {{ $t('offer.quantity') }} <span class="text-red-500">*</span>
-          </label>
-          <InputNumber
-            id="quantity"
-            v-model="offerData.quantity"
-            :useGrouping="false"
-            :min="0"
-            :placeholder="$t('offer.enter_quantity')"
-            class="w-full"
-            :class="{ 'p-invalid': errors.quantity }"
-          />
-        </div>
-
-        <!-- Quantity Unit -->
-        <div class="space-y-2">
-          <label for="quantity_unit" class="block text-sm font-medium text-gray-700">
-            {{ $t('offer.quantity_unit') }} <span class="text-red-500">*</span>
-          </label>
-          <Dropdown
-            id="quantity_unit"
-            v-model="offerData.quantity_unit"
-            :options="[
-              { label: 'Tablets', value: 1 },
-              { label: 'Capsules', value: 2 },
-              { label: 'Units', value: 3 },
-              { label: 'Bottle', value: 4 },
-              { label: 'Can', value: 5 }
-            ]"
-            optionLabel="label"
-            optionValue="value"
-            :placeholder="$t('offer.select_quantity_unit')"
-            class="w-full"
-            :class="{ 'p-invalid': errors.quantity_unit }"
-          />
-        </div>
-
-        <!-- Discount Type -->
         <div class="space-y-2">
           <label for="discount_type" class="block text-sm font-medium text-gray-700">
             {{ $t('offer.discount_type') }} <span class="text-red-500">*</span>
@@ -306,7 +268,6 @@ onMounted(() => {
           />
         </div>
 
-        <!-- Discount Value (Percentage / Fixed) -->
         <div v-if="offerData.discount_type === 1 || offerData.discount_type === 2" class="space-y-2">
           <label for="discount_value" class="block text-sm font-medium text-gray-700">
             {{ offerData.discount_type === 1 ? $t('offer.percentage') : $t('offer.fixed_amount') }}
@@ -327,7 +288,6 @@ onMounted(() => {
           <small v-if="offerData.discount_type === 1" class="text-gray-500">Max 100%</small>
         </div>
 
-        <!-- Gift Product -->
         <div v-if="offerData.discount_type === 3" class="space-y-2">
           <label for="gift_product_id" class="block text-sm font-medium text-gray-700">
             {{ $t('offer.gift_product') }} <span class="text-red-500">*</span>
@@ -345,7 +305,6 @@ onMounted(() => {
           />
         </div>
 
-        <!-- Gift Quantity -->
         <div v-if="offerData.discount_type === 3" class="space-y-2">
           <label for="gift_quantity" class="block text-sm font-medium text-gray-700">
             {{ $t('offer.gift_quantity') }} <span class="text-red-500">*</span>
@@ -361,7 +320,6 @@ onMounted(() => {
           />
         </div>
 
-        <!-- Min Limit -->
         <div class="space-y-2">
           <label for="min_limit" class="block text-sm font-medium text-gray-700">
             {{ $t('offer.min_limit_tooltip') }} <span class="text-red-500">*</span>
@@ -377,7 +335,6 @@ onMounted(() => {
           />
         </div>
 
-        <!-- Max Limit -->
         <div class="space-y-2">
           <label for="max_limit" class="block text-sm font-medium text-gray-700">
             {{ $t('offer.max_limit_tooltip') }} <span class="text-red-500">*</span>
@@ -393,7 +350,6 @@ onMounted(() => {
           />
         </div>
 
-        <!-- Start Date -->
         <div class="space-y-2">
           <label for="start_date" class="block text-sm font-medium text-gray-700">
             {{ $t('offer.start_date') }} <span class="text-red-500">*</span>
@@ -407,7 +363,6 @@ onMounted(() => {
           />
         </div>
 
-        <!-- End Date -->
         <div class="space-y-2">
           <label for="end_date" class="block text-sm font-medium text-gray-700">
             {{ $t('offer.end_date') }} <span class="text-red-500">*</span>
@@ -421,7 +376,6 @@ onMounted(() => {
           />
         </div>
 
-        <!-- Description -->
         <div class="space-y-2 md:col-span-2">
           <label for="description" class="block text-sm font-medium text-gray-700">
             {{ $t('offer.description') }}
@@ -436,12 +390,11 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Submit Button -->
       <div class="pt-6 flex justify-center">
         <Button
           type="submit"
           :label="$t(isEditing ? 'offer.update_offer' : 'offer.create_offer')"
-          icon="pi pi-plus"
+          :icon="isEditing ? 'pi pi-save' : 'pi pi-plus'"
           :loading="loading"
           class="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
         />

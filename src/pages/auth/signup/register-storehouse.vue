@@ -192,6 +192,7 @@
           <div class="relative">
             <label class="block text-sm font-medium text-gray-700 mb-1">{{ $t('auth.location') }}</label>
             <GoogleMap
+              api-key="AIzaSyDZnJeq94aaneiA3QWUZdWYV9uKDEjxjas"
               @click="handleMapClick"
               style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden;"
               :center="{ lat: form.lat ? parseFloat(form.lat) : 33.5158, lng: form.long ? parseFloat(form.long) : 36.2939 }"
@@ -704,12 +705,7 @@ const submitForm = async () => {
     })
   } catch (error) {
     console.error('Error submitting form:', error)
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: error.response?.data?.message || t('auth.warehouse_creation_failed'),
-      life: 3000
-    })
+
   }
 }
 

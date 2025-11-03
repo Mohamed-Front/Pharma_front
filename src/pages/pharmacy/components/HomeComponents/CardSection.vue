@@ -35,12 +35,11 @@ const fetchWarehouses = async () => {
         ...warehouse,
         name_ar: warehouse.name,
         name_en: warehouse.name, // Assuming API provides only one name; adjust if bilingual names are available
-        description_ar: warehouse.description_ar || 'مستودع يقدم خدمات موثوقة',
-        description_en: warehouse.description_en || 'Warehouse providing reliable services',
-        rating: warehouse.rating || 4.5,
+        description_ar: warehouse.description_ar || '  ',
+        description_en: warehouse.description_en || '',
+        rating: warehouse.total_rating || 0,
         tags: warehouse.tags || [
-          { name_ar: 'التوصيل 24/7', name_en: '24/7 Delivery' },
-          { name_ar: 'متصل بأكثر من 50 صيدلية', name_en: 'Connected to 50+ Pharmacies' }
+          { name_ar: `متصل بأكثر من ${warehouse.connected_pharmacies} صيدلية`, name_en: `Connected to ${warehouse.connected_pharmacies} Pharmacies` }
         ],
         address: warehouse.address || 'Unknown Address'
       }))

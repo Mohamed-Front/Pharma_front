@@ -8,7 +8,7 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6" v-if="dashboardData">
-      <div class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
+      <a href="/admin/companies" class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-sm font-medium text-gray-600">{{ $t('dashboard.companies') }}</p>
@@ -21,9 +21,9 @@
             </svg>
           </div>
         </div>
-      </div>
+      </a>
 
-      <div class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
+      <a href="/admin/users_management/pharmacy-request" class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-sm font-medium text-gray-600">{{ $t('dashboard.pharmacies') }}</p>
@@ -36,9 +36,9 @@
             </svg>
           </div>
         </div>
-      </div>
+      </a>
 
-      <div class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
+      <a href="/admin/users_management/warehouse-request" class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-sm font-medium text-gray-600">{{ $t('dashboard.warehouses') }}</p>
@@ -51,9 +51,9 @@
             </svg>
           </div>
         </div>
-      </div>
+      </a>
 
-      <div class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
+      <a href="/admin/categories" class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-sm font-medium text-gray-600">{{ $t('dashboard.categories') }}</p>
@@ -66,7 +66,7 @@
             </svg>
           </div>
         </div>
-      </div>
+      </a>
     </div>
 
     <!-- Loading State -->

@@ -1,44 +1,133 @@
 <template>
-  <div class="flex flex-col md:flex-row items-center justify-center bg-gradient-to-r from-[#F6FAFF] to-[#F6FAFF] rounded-lg">
-    <div
-      class="flex flex-col  p-12 md:p-16 w-full md:w-1/2  rounded-lg  h-[85vh]"
-      dir="rtl"
+  <div class="bg-gradient-to-r from-[#F6FAFF] to-[#F6FAFF] rounded-lg overflow-hidden">
+    <!-- Swiper Carousel for Banners -->
+    <swiper
+      v-if="banners.length > 0"
+      :modules="[Autoplay, Navigation, Pagination]"
+      :slides-per-view="1"
+      :loop="true"
+      :autoplay="{ delay: 4000, disableOnInteraction: false }"
+      :navigation="true"
+      :pagination="{ clickable: true }"
+      :dir="appLang === 'ar' ? 'rtl' : 'ltr'"
+      class="w-full"
     >
-      <div class="flex flex-col h-full justify-between w-full md:w-[90%]">
-        <div class="flex flex-col">
-          <span class="text-base font-bold text-red-600 mb-2">
-            عرض خاص!
-          </span>
-          <h2 class="mt-2 text-2xl md:text-4xl font-bold text-blue-900 leading-snug">
-            توصيل مجاني من جميع المستودعات الشريكة هذا الأسبوع.
-          </h2>
-          <p class="mt-6 text-lg text-blue-800 leading-relaxed">
-            استمتع بهذا الأسبوع توصيل مجاني من جميع المستودعات الشريكة إلى صيدليتك المفضلة عبر منصتنا.
-            نسهلها في الطلب، وسرعة في التوصيل – لأن راحتك وصحتك أولويتنا.
-          </p>
+      <swiper-slide v-for="(banner, index) in banners" :key="index">
+        <div class="flex w-full items-center justify-center p-4 md:p-8">
+          <img
+            :src="banner.url"
+            :alt="`Banner ${index + 1}`"
+            class="w-full max-h-96 object-contain drop-shadow-lg rounded-lg"
+            @error="handleImageError"
+          />
         </div>
-        <button
-          class="flex items-center justify-center px-8 py-3 mt-8 font-bold text-white transition-colors rounded-full bg-green-600 hover:bg-green-700 w-fit"
-        >
-          اطلب الآن
-          <i class="ml-2 pi pi-arrow-left"></i>
-        </button>
-      </div>
-    </div>
-    <div class="md:flex items-center justify-center w-full md:w-1/2 p-4 hidden">
-      <img
-        src="../../../../assets/home/header.png"
-        alt="كبسولة طبية مع أيقونات"
-        class="object-contain drop-shadow-lg"
-      />
+      </swiper-slide>
+    </swiper>
+
+    <!-- Optional: Show placeholder if no banners -->
+    <div v-else class="flex items-center justify-center h-48 md:h-64 bg-gray-100 rounded-lg">
+      <p class="text-gray-500">{{ t('noBanners') || 'No banners available' }}</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import 'primeicons/primeicons.css';
+import { ref, onMounted } from 'vue'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Autoplay, Navigation, Pagination } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
+import 'primeicons/primeicons.css'
+
+import axios from 'axios'
+import { useI18n } from 'vue-i18n'
+import { useToast } from 'primevue/usetoast'
+
+const { t } = useI18n()
+const toast = useToast()
+
+// App language for RTL/LTR
+const appLang = ref(localStorage.getItem('appLang') || 'en')
+
+// Banners from API (filtered from media where name === 'banners')
+const banners = ref([])
+
+
+
+// Fetch banners from settings → `data.media` where name === 'banners'
+const fetchBanners = async () => {
+  try {
+    const { data } = await axios.get(`/api/setting`)
+
+    if (data.success && Array.isArray(data.data?.media)) {
+      // Filter media items where name === 'banners'
+      const bannerMedia = data.data.media
+        .filter(item => item.name === 'banners')
+        .map(item => ({
+          url: item.url
+        }))
+
+      if (bannerMedia.length > 0) {
+        banners.value = bannerMedia
+      } else {
+        console.warn('No banner images found in media array.')
+      }
+    } else {
+      console.warn('Invalid response structure or no media found.')
+    }
+  } catch (error) {
+    console.error('Error fetching banners:', error)
+    toast.add({
+      severity: 'warn',
+      summary: t('warning'),
+      detail: t('error.loadBanners') || 'Failed to load banners',
+      life: 3000,
+    })
+  }
+}
+
+// Load on mount
+onMounted(() => {
+  fetchBanners()
+})
 </script>
 
 <style scoped>
-/* لا حاجة لأنماط مخصصة، Tailwind يكفي */
+/* Customize Swiper navigation & pagination */
+:deep(.swiper-button-next),
+:deep(.swiper-button-prev) {
+  color: #10b981;
+  background: rgba(255, 255, 255, 0.9);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+:deep(.swiper-button-next:after),
+:deep(.swiper-button-prev:after) {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+:deep(.swiper-pagination-bullet) {
+  background: #cbd5e1;
+  opacity: 0.7;
+}
+
+:deep(.swiper-pagination-bullet-active) {
+  background: #10b981;
+  opacity: 1;
+}
+
+/* Responsive image height */
+@media (max-width: 768px) {
+  img {
+    max-height: 220px;
+  }
+}
 </style>

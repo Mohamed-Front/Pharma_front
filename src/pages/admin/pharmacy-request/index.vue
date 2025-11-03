@@ -9,7 +9,19 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const router = useRouter()
 const toast = useToast()
-const loading = ref(true)
+
+// Tab control
+const activeTab = ref(0) // 0: Pharmacies, 1: Requests
+
+
+// === Pharmacies Tab ===
+const pharmacies = ref([])
+const loadingPharmacies = ref(true)
+const deletePharmacyId = ref('')
+const deletePharmacyDialog = ref(false)
+
+// === Requests Tab ===
+const loadingRequests = ref(true)
 const delete_id = ref('')
 const reject_id = ref('')
 const accept_id = ref('')
@@ -17,13 +29,12 @@ const pharmacyRequests = ref(null)
 const deleteDialog = ref(false)
 const rejectDialog = ref(false)
 const acceptDialog = ref(false)
-const selectedRequests = ref(null)
 const dt = ref(null)
 const filters = ref({})
 const searchQuery = ref('')
 const rejected_message = ref('')
 
-// Pagination variables
+// Pagination for Requests
 const currentPage = ref(1)
 const totalRecords = ref(0)
 const rowsPerPage = ref(10)
@@ -31,10 +42,42 @@ const totalPages = ref(0)
 const from = ref(0)
 const to = ref(0)
 
+// Export CSV (Requests only)
 const exportCSV = () => {
-  dt.value.exportCSV()
+  if (dt.value) dt.value.exportCSV()
 }
 
+// === Pharmacy Delete ===
+const confirmDeletePharmacy = (id) => {
+  deletePharmacyId.value = id
+  deletePharmacyDialog.value = true
+}
+
+const deletePharmacy = () => {
+  axios.delete(`/api/pharmacy/${deletePharmacyId.value}`)
+    .then(() => {
+      fetchPharmacies()
+      deletePharmacyDialog.value = false
+      toast.add({
+        severity: 'success',
+        summary: t('success'),
+        detail: t('pharmacy.deleteSuccess'),
+        life: 3000
+      })
+    })
+    .catch((error) => {
+      deletePharmacyDialog.value = false
+      toast.add({
+        severity: 'error',
+        summary: t('error'),
+        detail: t('pharmacy.deleteError'),
+        life: 3000
+      })
+      console.error("Delete pharmacy error:", error)
+    })
+}
+
+// === Request Actions ===
 const confirmDelete = (id) => {
   delete_id.value = id
   deleteDialog.value = true
@@ -54,85 +97,49 @@ const confirmAccept = (id) => {
 const deleteRequest = () => {
   axios.delete(`/api/pharmacy-request/${delete_id.value}`)
     .then(() => {
-      fetchData()
+      fetchRequests()
       deleteDialog.value = false
-      toast.add({
-        severity: 'success',
-        summary: t('success'),
-        detail: t('pharmacyRequest.deleteSuccess'),
-        life: 3000
-      })
+      toast.add({ severity: 'success', summary: t('success'), detail: t('pharmacyRequest.deleteSuccess'), life: 3000 })
     })
-    .catch(error => {
-      toast.add({
-        severity: 'error',
-        summary: t('error'),
-        detail: t('pharmacyRequest.deleteError'),
-        life: 3000
-      })
+    .catch(() => {
+      toast.add({ severity: 'error', summary: t('error'), detail: t('pharmacyRequest.deleteError'), life: 3000 })
     })
 }
 
 const acceptRequest = () => {
   axios.post(`/api/pharmacy-request/accept/${accept_id.value}`)
     .then(() => {
-      fetchData()
+      fetchRequests()
       acceptDialog.value = false
-      toast.add({
-        severity: 'success',
-        summary: t('success'),
-        detail: t('pharmacyRequest.acceptSuccess'),
-        life: 3000
-      })
+      toast.add({ severity: 'success', summary: t('success'), detail: t('pharmacyRequest.acceptSuccess'), life: 3000 })
     })
-    .catch(error => {
-      toast.add({
-        severity: 'error',
-        summary: t('error'),
-        detail: t('pharmacyRequest.acceptError'),
-        life: 3000
-      })
+    .catch(() => {
+      toast.add({ severity: 'error', summary: t('error'), detail: t('pharmacyRequest.acceptError'), life: 3000 })
     })
 }
 
 const rejectRequest = () => {
   if (!rejected_message.value.trim()) {
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: t('pharmacyRequest.rejectedMessageRequired'),
-      life: 3000
-    })
+    toast.add({ severity: 'error', summary: t('error'), detail: t('pharmacyRequest.rejectedMessageRequired'), life: 3000 })
     return
   }
 
-  axios.post(`/api/pharmacy-request/reject/${reject_id.value}`, {
-    rejected_message: rejected_message.value
-  })
+  axios.post(`/api/pharmacy-request/reject/${reject_id.value}`, { rejected_message: rejected_message.value })
     .then(() => {
-      fetchData()
+      fetchRequests()
       rejectDialog.value = false
-      toast.add({
-        severity: 'success',
-        summary: t('success'),
-        detail: t('pharmacyRequest.rejectSuccess'),
-        life: 3000
-      })
+      toast.add({ severity: 'success', summary: t('success'), detail: t('pharmacyRequest.rejectSuccess'), life: 3000 })
     })
-    .catch(error => {
-      toast.add({
-        severity: 'error',
-        summary: t('error'),
-        detail: t('pharmacyRequest.rejectError'),
-        life: 3000
-      })
+    .catch(() => {
+      toast.add({ severity: 'error', summary: t('error'), detail: t('pharmacyRequest.rejectError'), life: 3000 })
     })
 }
 
 const showDetails = (id) => {
-  router.push({ name: 'pharmacy_request_show', params: { id: id } })
+  router.push({ name: 'pharmacy_request_show', params: { id } })
 }
 
+// === Filters ===
 const initFilters = () => {
   filters.value = {
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -143,8 +150,23 @@ onBeforeMount(() => {
   initFilters()
 })
 
-const fetchData = () => {
-  loading.value = true
+// === Fetch Data ===
+const fetchPharmacies = () => {
+  loadingPharmacies.value = true
+  axios.get("/api/pharmacy")
+    .then((res) => {
+      pharmacies.value = res.data.data || []
+      loadingPharmacies.value = false
+    })
+    .catch((error) => {
+      loadingPharmacies.value = false
+      toast.add({ severity: 'error', summary: t('error'), detail: t('pharmacy.loadError'), life: 3000 })
+      console.error("Error fetching pharmacies:", error)
+    })
+}
+
+const fetchRequests = () => {
+  loadingRequests.value = true
   axios.get("/api/pharmacy-request", {
     params: {
       page: currentPage.value,
@@ -152,48 +174,60 @@ const fetchData = () => {
       search: searchQuery.value
     }
   }).then((res) => {
-    loading.value = false
+    loadingRequests.value = false
     pharmacyRequests.value = res.data.data
-    totalRecords.value = res.data.pagination.total
-    totalPages.value = res.data.pagination.last_page
-    from.value = res.data.pagination.from
-    to.value = res.data.pagination.to
-  }).catch(error => {
-    loading.value = false
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: t('pharmacyRequest.loadError'),
-      life: 3000
-    })
-    console.error("Error fetching data:", error)
+    const pagination = res.data.pagination || {}
+    totalRecords.value = pagination.total || 0
+    totalPages.value = pagination.last_page || 1
+    from.value = pagination.from || 0
+    to.value = pagination.to || 0
+  }).catch((error) => {
+    loadingRequests.value = false
+    toast.add({ severity: 'error', summary: t('error'), detail: t('pharmacyRequest.loadError'), life: 3000 })
+    console.error("Error fetching requests:", error)
   })
 }
 
-watch(searchQuery, (newVal) => {
-  currentPage.value = 1
-  fetchData()
+// Watch search
+watch(searchQuery, () => {
+  if (activeTab.value === 1) {
+    currentPage.value = 1
+    fetchRequests()
+  }
 })
 
+// Pagination
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
-    fetchData()
+    fetchRequests()
   }
 }
 
 const changeRowsPerPage = (rows) => {
   rowsPerPage.value = rows
   currentPage.value = 1
-  fetchData()
+  fetchRequests()
 }
 
+// === Lifecycle ===
 onMounted(() => {
-  fetchData()
+  if (activeTab.value === 0) fetchPharmacies()
+  else fetchRequests()
+})
+
+watch(activeTab, (newTab) => {
+  if (newTab === 0) {
+    fetchPharmacies()
+  } else {
+    searchQuery.value = ''
+    currentPage.value = 1
+    fetchRequests()
+  }
 })
 
 const openNew = () => {
-  router.push({ name: 'pharmacy-request-create' })
+  router.push({ name: 'add-pharmacy' })
 }
 </script>
 
@@ -203,19 +237,21 @@ const openNew = () => {
       <div class="p-4 card shadow-2 border-round">
         <Toolbar class="mb-4">
           <template #start>
-            <h2 class="text-2xl font-bold">{{ t('pharmacyRequest.title') }}</h2>
+            <h2 class="text-2xl font-bold">
+              {{ activeTab === 0 ? t('pharmacy.title') : t('pharmacyRequest.title') }}
+            </h2>
           </template>
-
           <template #end>
             <div class="flex gap-2">
-              <span class="p-input-icon-left">
+              <span v-if="activeTab === 1" class="p-input-icon-left">
                 <i class="pi pi-search" />
-                <InputText v-model="searchQuery" :placeholder="$t('pharmacyRequest.search')" />
+                <InputText v-model="searchQuery" :placeholder="t('pharmacyRequest.search')" />
               </span>
               <Button
+                v-if="activeTab === 1"
                 :label="t('pharmacyRequest.export')"
                 icon="pi pi-upload"
-                class="p-export"
+                class="p-button-outlined p-button-sm"
                 @click="exportCSV"
               />
               <Button
@@ -228,263 +264,307 @@ const openNew = () => {
           </template>
         </Toolbar>
 
-        <Toast />
+        <!-- Tabs -->
+        <TabView v-model:activeIndex="activeTab">
+          <!-- صيدليات Tab -->
+          <TabPanel :header="t('pharmacy.tabPharmacies')">
+            <DataTable
+              :value="pharmacies"
+              :loading="loadingPharmacies"
+              responsiveLayout="scroll"
+              stripedRows
+              showGridlines
+              class="p-datatable-sm"
+            >
+              <Column field="name" :header="t('pharmacy.name')" :sortable="true">
+                <template #body="slotProps">
+                  {{ slotProps.data.name }}
+                </template>
+              </Column>
 
-        <div class="card shadow-1 surface-0">
-          <DataTable
-            ref="dt"
-            :value="pharmacyRequests"
-            :loading="loading"
-            data-key="id"
-            :paginator="false"
-            :rows="rowsPerPage"
-            :filters="filters"
-            :totalRecords="totalRecords"
-            responsive-layout="scroll"
-            stripedRows
-            showGridlines
-            class="p-datatable-sm"
-            v-can="'list pharmacy requests'"
-          >
-            <Column selection-mode="multiple" header-style="width: 3rem"></Column>
+              <Column field="phone" :header="t('pharmacy.phone')" :sortable="true">
+                <template #body="slotProps">
+                  {{ slotProps.data.phone }}
+                </template>
+              </Column>
 
-            <Column field="number" :header="t('pharmacyRequest.number')" :sortable="true" header-style="width:14%; min-width:10rem;">
-              <template #body="slotProps">
-                {{ slotProps.data.number }}
+              <Column field="city" :header="t('pharmacy.city')" :sortable="true">
+                <template #body="slotProps">
+                  {{ slotProps.data.city || '-' }}
+                </template>
+              </Column>
+
+              <Column field="address" :header="t('pharmacy.address')" :sortable="true">
+                <template #body="slotProps">
+                  {{ slotProps.data.address }}
+                </template>
+              </Column>
+
+              <Column field="status_description" :header="t('pharmacy.status')">
+                <template #body="slotProps">
+                  <Tag
+                    :value="slotProps.data.status_description"
+                    :severity="slotProps.data.status === 1 ? 'success' : 'danger'"
+                  />
+                </template>
+              </Column>
+
+              <Column :header="t('actions')" header-style="min-width:8rem;">
+                <template #body="slotProps">
+                  <Button
+                    icon="pi pi-trash"
+                    class="mr-2 p-delete"
+                    @click="confirmDeletePharmacy(slotProps.data.id)"
+                    v-tooltip.top="t('delete')"
+                  />
+                </template>
+              </Column>
+
+              <template #empty>
+                <div class="py-4 text-center">
+                  <i class="mb-2 text-2xl pi pi-exclamation-circle" />
+                  <p class="text-xl">{{ t('pharmacy.noData') }}</p>
+                </div>
               </template>
-            </Column>
 
-            <Column field="name" :header="t('pharmacyRequest.name')" :sortable="true" header-style="width:14%; min-width:10rem;">
-              <template #body="slotProps">
-                {{ slotProps.data.name }}
+              <template #loading>
+                <div class="flex py-4 justify-content-center align-items-center">
+                  <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="4" />
+                </div>
               </template>
-            </Column>
+            </DataTable>
+          </TabPanel>
 
-            <Column field="email" :header="t('pharmacyRequest.email')" :sortable="true" header-style="width:14%; min-width:10rem;">
-              <template #body="slotProps">
-                {{ slotProps.data.email }}
+          <!-- طلبات Tab -->
+          <TabPanel :header="t('pharmacyRequest.tabRequests')">
+            <Toast />
+
+            <DataTable
+              ref="dt"
+              :value="pharmacyRequests"
+              :loading="loadingRequests"
+              data-key="id"
+              :paginator="false"
+              :rows="rowsPerPage"
+              :filters="filters"
+              :totalRecords="totalRecords"
+              responsive-layout="scroll"
+              stripedRows
+              showGridlines
+              class="p-datatable-sm"
+              v-can="'list pharmacy requests'"
+            >
+              <Column selection-mode="multiple" header-style="width: 3rem"></Column>
+
+              <Column field="number" :header="t('pharmacyRequest.number')" :sortable="true" header-style="width:14%; min-width:10rem;">
+                <template #body="slotProps">
+                  {{ slotProps.data.number }}
+                </template>
+              </Column>
+
+              <Column field="name" :header="t('pharmacyRequest.name')" :sortable="true" header-style="width:14%; min-width:10rem;">
+                <template #body="slotProps">
+                  {{ slotProps.data.name }}
+                </template>
+              </Column>
+
+              <Column field="email" :header="t('pharmacyRequest.email')" :sortable="true" header-style="width:14%; min-width:10rem;">
+                <template #body="slotProps">
+                  {{ slotProps.data.email }}
+                </template>
+              </Column>
+
+              <Column field="address" :header="t('pharmacyRequest.address')" :sortable="true" header-style="width:20%; min-width:15rem;">
+                <template #body="slotProps">
+                  {{ slotProps.data.address }}
+                </template>
+              </Column>
+
+              <Column field="status_description" :header="t('pharmacyRequest.status')" :sortable="true" header-style="width:14%; min-width:10rem;">
+                <template #body="slotProps">
+                  <Tag
+                    :value="slotProps.data.status_description"
+                    :severity="{
+                      'active': 'success',
+                      'pending': 'warning',
+                      'rejected': 'danger'
+                    }[slotProps.data.status_description] || 'danger'"
+                  />
+                </template>
+              </Column>
+
+              <Column :header="t('actions')" header-style="min-width:15rem;">
+                <template #body="slotProps">
+                  <Button
+                    icon="pi pi-eye"
+                    class="mr-2 p-detail"
+                    @click="showDetails(slotProps.data.id)"
+                    v-tooltip.top="t('view')"
+                  />
+                  <Button
+                    v-can="'accept pharmacy requests'"
+                    icon="pi pi-check"
+                    class="mr-2 p-show"
+                    @click="confirmAccept(slotProps.data.id)"
+                    v-tooltip.top="t('accept')"
+                  />
+                  <Button
+                    v-can="'reject pharmacy requests'"
+                    icon="pi pi-times"
+                    class="mr-2 p-delete"
+                    @click="confirmReject(slotProps.data.id)"
+                    v-tooltip.top="t('reject')"
+                    :disabled="slotProps.data.status_description === 'active'"
+                  />
+                  <Button
+                    icon="pi pi-trash"
+                    class="mr-2 p-delete"
+                    @click="confirmDelete(slotProps.data.number)"
+                    v-tooltip.top="t('delete')"
+                  />
+                </template>
+              </Column>
+
+              <template #empty>
+                <div class="py-4 text-center">
+                  <i class="mb-2 text-2xl pi pi-exclamation-circle" />
+                  <p class="text-xl">{{ t('pharmacyRequest.noData') }}</p>
+                </div>
               </template>
-            </Column>
 
-            <Column field="address" :header="t('pharmacyRequest.address')" :sortable="true" header-style="width:20%; min-width:15rem;">
-              <template #body="slotProps">
-                {{ slotProps.data.address }}
+              <template #loading>
+                <div class="flex py-4 justify-content-center align-items-center">
+                  <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="4" />
+                </div>
               </template>
-            </Column>
+            </DataTable>
 
-            <Column field="status_description" :header="t('pharmacyRequest.status')" :sortable="true" header-style="width:14%; min-width:10rem;">
-              <template #body="slotProps">
-                <Tag
-                  :value="slotProps.data.status_description"
-                  :severity="{
-                    'active': 'success',
-                    'pending': 'warning',
-                    'rejected': 'danger'
-                  }[slotProps.data.status_description] || 'danger'"
-                />
-              </template>
-            </Column>
-
-            <Column :header="t('actions')" header-style="min-width:15rem;">
-              <template #body="slotProps">
-                <Button
-                  icon="pi pi-eye"
-                  class="mr-2 p-detail"
-                  @click="showDetails(slotProps.data.id)"
-                  v-tooltip.top="t('view')"
-                />
-                <Button
-                  v-can="'accept pharmacy requests'"
-                  icon="pi pi-check"
-                  class="mr-2 p-show"
-                  @click="confirmAccept(slotProps.data.id)"
-                  v-tooltip.top="t('accept')"
-                />
-                <Button
-                  v-can="'reject pharmacy requests'"
-                  icon="pi pi-times"
-                  class="mr-2 p-delete"
-                  @click="confirmReject(slotProps.data.id)"
-                  v-tooltip.top="t('reject')"
-                  :disabled="slotProps.data.status_description == 'active'"
-                />
-                <Button
-
-                  icon="pi pi-trash"
-                  class="mr-2 p-delete"
-                  @click="confirmDelete(slotProps.data.number)"
-                  v-tooltip.top="t('delete')"
-                />
-              </template>
-            </Column>
-
-            <template #empty>
-              <div class="py-4 text-center">
-                <i class="mb-2 text-2xl pi pi-exclamation-circle" />
-                <p class="text-xl">{{ t('pharmacyRequest.noData') }}</p>
+            <!-- Custom Pagination -->
+            <div class="mt-3 p-paginator p-component p-unselectable-text" v-if="totalPages > 0">
+              <div class="p-paginator-left-content">
+                <span class="p-paginator-current">
+                  {{ t('showing') }} {{ from }} {{ t('to') }} {{ to }} {{ t('of') }} {{ totalRecords }} {{ t('entries') }}
+                </span>
               </div>
-            </template>
+              <div class="p-paginator-right-content">
+                <span class="p-paginator-pages">
+                  <button
+                    class="p-paginator-first p-paginator-element p-link"
+                    :disabled="currentPage === 1"
+                    @click="goToPage(1)"
+                  >
+                    <span class="p-paginator-icon pi pi-angle-double-left"></span>
+                  </button>
+                  <button
+                    class="p-paginator-prev p-paginator-element p-link"
+                    :disabled="currentPage === 1"
+                    @click="goToPage(currentPage - 1)"
+                  >
+                    <span class="p-paginator-icon pi pi-angle-left"></span>
+                  </button>
 
-            <template #loading>
-              <div class="flex py-4 justify-content-center align-items-center">
-                <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="4" />
+                  <button
+                    v-for="page in totalPages"
+                    :key="page"
+                    class="p-paginator-page p-paginator-element p-link"
+                    :class="{ 'p-highlight': currentPage === page }"
+                    @click="goToPage(page)"
+                  >
+                    {{ page }}
+                  </button>
+
+                  <button
+                    class="p-paginator-next p-paginator-element p-link"
+                    :disabled="currentPage === totalPages"
+                    @click="goToPage(currentPage + 1)"
+                  >
+                    <span class="p-paginator-icon pi pi-angle-right"></span>
+                  </button>
+                  <button
+                    class="p-paginator-last p-paginator-element p-link"
+                    :disabled="currentPage === totalPages"
+                    @click="goToPage(totalPages)"
+                  >
+                    <span class="p-paginator-icon pi pi-angle-double-right"></span>
+                  </button>
+                </span>
+
+                <span class="p-paginator-rpp-options">
+                  <Dropdown
+                    v-model="rowsPerPage"
+                    :options="[5, 10, 20, 30]"
+                    @change="changeRowsPerPage"
+                    class="ml-2"
+                    style="width: 100px"
+                  />
+                </span>
               </div>
-            </template>
-          </DataTable>
-
-          <!-- Custom Pagination -->
-          <div class="mt-3 p-paginator p-component p-unselectable-text" v-if="totalPages > 0">
-            <div class="p-paginator-left-content">
-              <span class="p-paginator-current">
-                {{ t('showing') }} {{ from }} {{ t('to') }} {{ to }} {{ t('of') }} {{ totalRecords }} {{ t('entries') }}
-              </span>
             </div>
-            <div class="p-paginator-right-content">
-              <span class="p-paginator-pages">
-                <button
-                  class="p-paginator-first p-paginator-element p-link"
-                  :disabled="currentPage === 1"
-                  @click="goToPage(1)"
-                >
-                  <span class="p-paginator-icon pi pi-angle-double-left"></span>
-                </button>
-                <button
-                  class="p-paginator-prev p-paginator-element p-link"
-                  :disabled="currentPage === 1"
-                  @click="goToPage(currentPage - 1)"
-                >
-                  <span class="p-paginator-icon pi pi-angle-left"></span>
-                </button>
+          </TabPanel>
+        </TabView>
 
-                <button
-                  v-for="page in totalPages"
-                  :key="page"
-                  class="p-paginator-page p-paginator-element p-link"
-                  :class="{ 'p-highlight': currentPage === page }"
-                  @click="goToPage(page)"
-                >
-                  {{ page }}
-                </button>
-
-                <button
-                  class="p-paginator-next p-paginator-element p-link"
-                  :disabled="currentPage === totalPages"
-                  @click="goToPage(currentPage + 1)"
-                >
-                  <span class="p-paginator-icon pi pi-angle-right"></span>
-                </button>
-                <button
-                  class="p-paginator-last p-paginator-element p-link"
-                  :disabled="currentPage === totalPages"
-                  @click="goToPage(totalPages)"
-                >
-                  <span class="p-paginator-icon pi pi-angle-double-right"></span>
-                </button>
-              </span>
-
-              <span class="p-paginator-rpp-options">
-                <Dropdown
-                  v-model="rowsPerPage"
-                  :options="[5, 10, 20, 30]"
-                  @change="changeRowsPerPage"
-                  class="ml-2"
-                  style="width: 100px"
-                />
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Delete Confirmation Dialog -->
+        <!-- Pharmacy Delete Dialog -->
         <Dialog
-          v-model:visible="deleteDialog"
+          v-model:visible="deletePharmacyDialog"
           :style="{ width: '450px' }"
-          :header="t('pharmacyRequest.deleteConfirmTitle')"
+          :header="t('pharmacy.deleteConfirmTitle')"
           :modal="true"
         >
+          <div class="flex align-items-center justify-content-center">
+            <i class="mr-3 pi pi-exclamation-triangle" style="font-size: 2rem; color: var(--red-500)" />
+            <span>{{ t('pharmacy.deleteConfirmMessage') }}</span>
+          </div>
+          <template #footer>
+            <Button :label="t('no')" icon="pi pi-times" class="p-button-text" @click="deletePharmacyDialog = false" />
+            <Button :label="t('yes')" icon="pi pi-check" class="p-button-text p-button-danger" @click="deletePharmacy" />
+          </template>
+        </Dialog>
+
+        <!-- Request Delete Dialog -->
+        <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" :header="t('pharmacyRequest.deleteConfirmTitle')" :modal="true">
           <div class="flex align-items-center justify-content-center">
             <i class="mr-3 pi pi-exclamation-triangle" style="font-size: 2rem; color: var(--red-500)" />
             <span>{{ t('pharmacyRequest.deleteConfirmMessage') }}</span>
           </div>
           <template #footer>
-            <Button
-              :label="t('no')"
-              icon="pi pi-times"
-              class="p-button-text"
-              @click="deleteDialog = false"
-            />
-            <Button
-              :label="t('yes')"
-              icon="pi pi-check"
-              class="p-button-text p-button-danger"
-              @click="deleteRequest"
-            />
+            <Button :label="t('no')" icon="pi pi-times" class="p-button-text" @click="deleteDialog = false" />
+            <Button :label="t('yes')" icon="pi pi-check" class="p-button-text p-button-danger" @click="deleteRequest" />
           </template>
         </Dialog>
 
-        <!-- Accept Confirmation Dialog -->
-        <Dialog
-          v-model:visible="acceptDialog"
-          :style="{ width: '450px' }"
-          :header="t('pharmacyRequest.acceptConfirmTitle')"
-          :modal="true"
-        >
+        <!-- Accept Dialog -->
+        <Dialog v-model:visible="acceptDialog" :style="{ width: '450px' }" :header="t('pharmacyRequest.acceptConfirmTitle')" :modal="true">
           <div class="flex align-items-center justify-content-center">
             <i class="mr-3 pi pi-check-circle" style="font-size: 2rem; color: var(--green-500)" />
             <span>{{ t('pharmacyRequest.acceptConfirmMessage') }}</span>
           </div>
           <template #footer>
-            <Button
-              :label="t('no')"
-              icon="pi pi-times"
-              class="p-button-text"
-              @click="acceptDialog = false"
-            />
-            <Button
-              :label="t('yes')"
-              icon="pi pi-check"
-              class="p-button-text p-button-success"
-              @click="acceptRequest"
-            />
+            <Button :label="t('no')" icon="pi pi-times" class="p-button-text" @click="acceptDialog = false" />
+            <Button :label="t('yes')" icon="pi pi-check" class="p-button-text p-button-success" @click="acceptRequest" />
           </template>
         </Dialog>
 
-        <!-- Reject Confirmation Dialog -->
-        <Dialog
-          v-model:visible="rejectDialog"
-          :style="{ width: '450px' }"
-          :header="t('pharmacyRequest.rejectConfirmTitle')"
-          :modal="true"
-        >
+        <!-- Reject Dialog -->
+        <Dialog v-model:visible="rejectDialog" :style="{ width: '450px' }" :header="t('pharmacyRequest.rejectConfirmTitle')" :modal="true">
           <div class="gap-3">
             <div class="flex align-items-center">
               <i class="mr-3 pi pi-exclamation-triangle" style="font-size: 2rem; color: var(--red-500)" />
               <span>{{ t('pharmacyRequest.rejectConfirmMessage') }}</span>
             </div>
             <div class="gap-2 flex-column">
-              <p for="rejectedMessage">{{ t('pharmacyRequest.rejectedMessage') }}</p>
+              <label for="rejectedMessage">{{ t('pharmacyRequest.rejectedMessage') }}</label>
               <Textarea
                 v-model="rejected_message"
                 id="rejectedMessage"
                 rows="4"
-                class="w-full mt-4"
+                class="w-full mt-2"
                 :placeholder="t('pharmacyRequest.rejectedMessagePlaceholder')"
               />
             </div>
           </div>
           <template #footer>
-            <Button
-              :label="t('no')"
-              icon="pi pi-times"
-              class="p-button-text"
-              @click="rejectDialog = false"
-            />
-            <Button
-              :label="t('yes')"
-              icon="pi pi-check"
-              class="p-button-text p-button-danger"
-              @click="rejectRequest"
-            />
+            <Button :label="t('no')" icon="pi pi-times" class="p-button-text" @click="rejectDialog = false" />
+            <Button :label="t('yes')" icon="pi pi-check" class="p-button-text p-button-danger" @click="rejectRequest" />
           </template>
         </Dialog>
       </div>
@@ -505,10 +585,7 @@ const openNew = () => {
 
   .p-datatable-tbody > tr {
     transition: background-color 0.2s;
-
-    &:hover {
-      background-color: var(--surface-hover);
-    }
+    &:hover { background-color: var(--surface-hover); }
   }
 }
 
@@ -521,9 +598,7 @@ const openNew = () => {
   border: 1px solid var(--surface-border);
   border-radius: 3px;
 
-  .p-paginator-left-content {
-    color: var(--text-color-secondary);
-  }
+  .p-paginator-left-content { color: var(--text-color-secondary); }
 
   .p-paginator-right-content {
     display: flex;
@@ -534,51 +609,21 @@ const openNew = () => {
       margin: 0 0.5rem;
 
       button {
-        text-align: center;
-        min-width: 2.357rem;
-        height: 2.357rem;
-        margin: 0.143rem;
-        border: 0 none;
-        color: var(--text-color-secondary);
-        background: transparent;
-        border-radius: 50%;
+        min-width: 2.357rem; height: 2.357rem; margin: 0.143rem;
+        border: 0; color: var(--text-color-secondary);
+        background: transparent; border-radius: 50%;
         transition: background-color 0.2s;
 
-        &:hover {
-          background: var(--surface-hover);
-        }
-
-        &.p-highlight {
-          color: var(--primary-color-text);
-          background: var(--primary-color);
-        }
-
-        &:disabled {
-          opacity: 0.5;
-          cursor: default;
-        }
+        &:hover { background: var(--surface-hover); }
+        &.p-highlight { color: var(--primary-color-text); background: var(--primary-color); }
+        &:disabled { opacity: 0.5; cursor: default; }
       }
     }
   }
 }
 
 @media screen and (max-width: 960px) {
-  :deep(.p-datatable) {
-    overflow-x: auto;
-    display: block;
-  }
-
-  .p-paginator {
-    flex-direction: column;
-    gap: 1rem;
-
-    .p-paginator-left-content {
-      order: 2;
-    }
-
-    .p-paginator-right-content {
-      order: 1;
-    }
-  }
+  :deep(.p-datatable) { overflow-x: auto; display: block; }
+  .p-paginator { flex-direction: column; gap: 1rem; .p-paginator-left-content { order: 2; } .p-paginator-right-content { order: 1; } }
 }
 </style>

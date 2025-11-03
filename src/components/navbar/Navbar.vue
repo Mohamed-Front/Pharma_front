@@ -3,11 +3,11 @@
     <template #right>
       <div class="left space-x-10 flex justify-between">
         <div>
-        <h1>{{ translatedRouteName }}</h1>
+        <h1>{{ authStore.authName }}</h1>
 
         </div>
           <div>
-          <img src="../../assets/logo.png" class="h-10">
+          <img :src="authStore.image" class="h-10">
         </div>
       </div>
     </template>
@@ -42,7 +42,8 @@ import AppNavbarActions from './components/AppNavbarActions.vue'
 import LocaleSelect from '../LocaleSelect.vue'
 import WarehouseNotification from '../notification/WarehouseNotification.vue'
 import AdminNotification from '../notification/AdminNotification.vue'
-
+import { useAuthStore } from '../../stores/Auth'
+const authStore = useAuthStore()
 
 const router = useRouter()
 const { t } = useI18n()

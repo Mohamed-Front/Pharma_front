@@ -261,13 +261,13 @@ onMounted(() => {
               </template>
             </Column>
 
-            <Column field="start_date" :header="t('offer.startDate')" :sortable="true" header-style="width:15%; min-width:10rem;">
+            <Column field="start_date" :header="t('offer.start_date')" :sortable="true" header-style="width:15%; min-width:10rem;">
               <template #body="slotProps">
                 {{ new Date(slotProps.data.start_date).toLocaleDateString() }}
               </template>
             </Column>
 
-            <Column field="end_date" :header="t('offer.endDate')" :sortable="true" header-style="width:15%; min-width:10rem;">
+            <Column field="end_date" :header="t('offer.start_date')" :sortable="true" header-style="width:15%; min-width:10rem;">
               <template #body="slotProps">
                 {{ new Date(slotProps.data.end_date).toLocaleDateString() }}
               </template>

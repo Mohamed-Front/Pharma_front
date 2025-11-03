@@ -18,13 +18,11 @@ const { t } = useI18n();
 const loading = ref(false);
 const products = ref([]);
 
-// Form Data
+// Form Data (quantity and quantity_unit removed)
 const offerData = ref({
   product_id: null,
   min_limit: null,
   max_limit: null,
-  quantity: null,
-  quantity_unit: null,
   discount_type: null, // 1 = Percentage, 2 = Fixed, 3 = Gift
   discount_value: null,
   gift_product_id: null,
@@ -34,13 +32,11 @@ const offerData = ref({
   description: ''
 });
 
-// Validation Errors
+// Validation Errors (quantity and quantity_unit removed)
 const errors = ref({
   product_id: false,
   min_limit: false,
   max_limit: false,
-  quantity: false,
-  quantity_unit: false,
   discount_type: false,
   discount_value: false,
   gift_product_id: false,
@@ -71,7 +67,7 @@ watch(() => offerData.value.discount_type, (newType) => {
   }
 });
 
-// Validate form
+// Validate form (quantity and quantity_unit validations removed)
 const validateForm = () => {
   // Reset errors
   Object.keys(errors.value).forEach(key => {
@@ -80,8 +76,6 @@ const validateForm = () => {
 
   // Required fields
   errors.value.product_id = !offerData.value.product_id;
-  errors.value.quantity = offerData.value.quantity === null || offerData.value.quantity === '';
-  errors.value.quantity_unit = !offerData.value.quantity_unit;
   errors.value.discount_type = !offerData.value.discount_type;
   errors.value.min_limit = offerData.value.min_limit === null || offerData.value.min_limit === '';
   errors.value.max_limit = offerData.value.max_limit === null || offerData.value.max_limit === '';
@@ -100,13 +94,6 @@ const validateForm = () => {
   // Min/Max validation
   if (offerData.value.min_limit != null && offerData.value.max_limit != null) {
     errors.value.max_limit = errors.value.max_limit || offerData.value.min_limit > offerData.value.max_limit;
-  }
-
-  // Quantity within limits
-  if (offerData.value.quantity != null && offerData.value.min_limit != null && offerData.value.max_limit != null) {
-    errors.value.quantity = errors.value.quantity ||
-      offerData.value.quantity < offerData.value.min_limit ||
-      offerData.value.quantity > offerData.value.max_limit;
   }
 
   // Discount value range
@@ -191,44 +178,6 @@ onMounted(() => {
             :placeholder="$t('offer.select_product')"
             class="w-full"
             :class="{ 'p-invalid': errors.product_id }"
-          />
-        </div>
-
-        <!-- Quantity -->
-        <div class="space-y-2">
-          <label for="quantity" class="block text-sm font-medium text-gray-700">
-            {{ $t('offer.quantity') }} <span class="text-red-500">*</span>
-          </label>
-          <InputNumber
-            id="quantity"
-            v-model="offerData.quantity"
-            :useGrouping="false"
-            :placeholder="$t('offer.enter_quantity')"
-            class="w-full"
-            :class="{ 'p-invalid': errors.quantity }"
-          />
-        </div>
-
-        <!-- Quantity Unit -->
-        <div class="space-y-2">
-          <label for="quantity_unit" class="block text-sm font-medium text-gray-700">
-            {{ $t('offer.quantity_unit') }} <span class="text-red-500">*</span>
-          </label>
-          <Dropdown
-            id="quantity_unit"
-            v-model="offerData.quantity_unit"
-            :options="[
-              { label: 'Tablets', value: 1 },
-              { label: 'Capsules', value: 2 },
-              { label: 'Units', value: 3 },
-              { label: 'Bottle', value: 4 },
-              { label: 'Can', value: 5 }
-            ]"
-            optionLabel="label"
-            optionValue="value"
-            :placeholder="$t('offer.select_quantity_unit')"
-            class="w-full"
-            :class="{ 'p-invalid': errors.quantity_unit }"
           />
         </div>
 

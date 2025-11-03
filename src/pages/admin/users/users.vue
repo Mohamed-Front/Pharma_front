@@ -212,7 +212,7 @@ const editUser = (id) => {
             <Column field="roles" :header="t('user.roles')" header-style="width:20%; min-width:15rem;">
               <template #body="slotProps">
                 <div v-if="slotProps.data.roles && slotProps.data.roles.length">
-                  <Chip v-for="role in slotProps.data.roles" :key="role.id" :label="role.name" class="mr-2 mb-2" />
+                  {{ slotProps.data.roles[0].name }}
                 </div>
                 <span v-else>-</span>
               </template>
@@ -302,7 +302,7 @@ const editUser = (id) => {
               </span>
 
               <span class="p-paginator-rpp-options">
-                <Dropdown 
+                <Dropdown
                   v-model="rowsPerPage"
                   :options="[5, 10, 20, 30]"
                   @change="changeRowsPerPage"

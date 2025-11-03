@@ -168,6 +168,21 @@ const navigationRoutes = {
         icon: 'receipt'
       }
     },
+     {
+      name: 'warehouse-categories',
+      displayName: 'navigation.categories',
+      meta: {
+        icon: 'category'
+      }
+    },
+     {
+      name: 'warehouse-companies',
+      displayName: 'companies',
+      meta: {
+        icon: 'business'
+      }
+    },
+
     {
       name: 'reports',
       displayName: 'navigation.reports',

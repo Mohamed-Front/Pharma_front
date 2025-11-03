@@ -17,7 +17,9 @@ export const useAuthStore = defineStore('Auth', {
     type: useStorage('type', ''),
     authErrors: [],
     admintoken: useStorage('admintoken', null),
+    image: useStorage('image', null),
     warehoustoken: useStorage('warehoustoken', null),
+    authName: useStorage('warehoususer', null),
     pharmacytoken: useStorage('pharmacytoken', null),
     loading: ref(false),
     router: useRouter(),
@@ -47,17 +49,21 @@ export const useAuthStore = defineStore('Auth', {
           if(response.data.data.user.type == 1){
           this.router.push({ name: 'dashboard' })
           this.adminauthenticated=true
-          this.adminauthUser=response.data.data.user
+          this.authName=response.data.data.user.name
           this.admintoken=response.data.data.access_token
+          this.image=response.data.data.user.image
           this.warehoustoken=''
           this.warehouseauthenticated=false
+          this.adminuser = response.data.data.user
           this.userPermissions = response.data.data.user.permissions
 
 
           }
           if(response.data.data.user.type == 2){
           this.userPermissions = response.data.data.user.permissions
+          this.authName = response.data.data.user.name
           this.warehoustoken=response.data.data.access_token
+          this.image=response.data.data.user.image
           this.warehouseauthenticated=true
           this.router.push({ name: 'warehouse_dashboard' })
           this.admintoken=''

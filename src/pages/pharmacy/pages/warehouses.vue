@@ -36,9 +36,10 @@ const fetchWarehouses = async (page = 1) => {
       warehouses.value = response.data.data.map(warehouse => ({
         ...warehouse,
         name_ar: warehouse.name, // Map API 'name' to 'name_ar'
-        description_ar: warehouse.description_ar || 'مستودع يقدم خدمات موثوقة', // Fallback description
-        tags: warehouse.tags || ['مستودع موثوق'], // Fallback tags
-        rating: warehouse.total_rating || 4.0 // Fallback rating
+        description_ar: warehouse.description_ar || '', // Fallback description
+           tags: warehouse.tags || [
+          { name_ar: `متصل بأكثر من ${warehouse.connected_pharmacies} صيدلية`, name_en: `Connected to ${warehouse.connected_pharmacies} Pharmacies` }
+        ],        rating: warehouse.total_rating || 0.0 // Fallback rating
       }))
       totalPages.value = response.data.pagination.last_page || 1
       currentPage.value = response.data.pagination.current_page || 1
@@ -160,13 +161,13 @@ onMounted(() => {
               <p class="text-sm text-gray-600">{{ warehouse.address }}</p>
             </div>
           </div>
-          <div class="flex flex-wrap gap-2 mt-auto w-full">
+         <div class="flex flex-wrap gap-2 mt-auto w-full">
             <span
               v-for="tag in warehouse.tags"
-              :key="tag"
+              :key="tag.name_en"
               class="bg-green-100 text-green-800 text-xs font-medium px-3 py-1 rounded-full"
             >
-              {{ tag }}
+              {{ appLang === 'en' ? tag.name_en : tag.name_ar }}
             </span>
           </div>
         </div>

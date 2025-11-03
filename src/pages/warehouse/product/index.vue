@@ -244,7 +244,7 @@ onMounted(() => {
             </Column>
             <Column field="quantity" :header="t('product.quantity')" :sortable="true" header-style="width:10%; min-width:8rem;">
               <template #body="slotProps">
-                {{ slotProps.data.quantity }} {{ slotProps.data.quantity_unit }}
+                {{ slotProps.data?.quantity }} {{ slotProps.data.quantity_unit }}
               </template>
             </Column>
 
@@ -256,13 +256,13 @@ onMounted(() => {
 
             <Column field="category.name_en" :header="t('product.category')" :sortable="true" header-style="width:15%; min-width:10rem;">
               <template #body="slotProps">
-                {{ slotProps.data.category.name_en }}
+                {{ slotProps.data.category?.name_en }}
               </template>
             </Column>
 
             <Column field="company.name" :header="t('product.company')" :sortable="true" header-style="width:15%; min-width:10rem;">
               <template #body="slotProps">
-                {{ slotProps.data.company.name }}
+                {{ slotProps.data.company?.name }}
               </template>
             </Column>
 

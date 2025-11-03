@@ -51,7 +51,7 @@ export default {
     "settings": "Settings",
     "addresses": "Addresses"
   },
-   "featured_warehouses": "Featured Warehouses",
+   "featured_warehouses": " Warehouses",
   "warehouse_expertise": "We have extensive experience in",
   "warehouses": "Warehouses",
   "and_distribution": "and distribution of",

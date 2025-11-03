@@ -6,7 +6,7 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6" v-if="dashboardData">
-      <div class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
+      <a href="/warehouse/warehouse-companies" class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-sm font-medium text-gray-600">{{ $t('control.companies') }}</p>
@@ -19,9 +19,9 @@
             </svg>
           </div>
         </div>
-      </div>
+      </a>
 
-      <div class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
+      <a href="/warehouse/warehouse-categories" class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-sm font-medium text-gray-600">{{ $t('control.categories') }}</p>
@@ -34,9 +34,9 @@
             </svg>
           </div>
         </div>
-      </div>
+      </a>
 
-      <div class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
+      <a href="/warehouse/order" class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-sm font-medium text-gray-600">{{ $t('control.orders') }}</p>
@@ -49,9 +49,9 @@
             </svg>
           </div>
         </div>
-      </div>
+      </a>
 
-      <div class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
+      <a href="/warehouse/invoices" class="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:scale-105">
         <div class="flex justify-between items-start">
           <div>
             <p class="text-sm font-medium text-gray-600">{{ $t('control.invoices') }}</p>
@@ -64,7 +64,7 @@
             </svg>
           </div>
         </div>
-      </div>
+      </a>
     </div>
 
     <div v-if="loading" class="flex justify-center items-center h-64">

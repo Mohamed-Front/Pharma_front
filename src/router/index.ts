@@ -148,6 +148,16 @@ const routes: Array<RouteRecordRaw> = [
         path: 'roles-create',
         component: () => import('../pages/admin/roles/create.vue'),
       },
+       {
+        name: 'add-storehouse',
+        path: 'add-storehouse',
+        component: () => import('../pages/admin/users/add-storehouse.vue'),
+      },
+      {
+        name: 'add-pharmacy',
+        path: 'add-pharmacy',
+        component: () => import('../pages/admin/users/add-pharmacy.vue'),
+      },
       {
         name: 'Permission',
         path: 'Permission',
@@ -248,6 +258,16 @@ const routes: Array<RouteRecordRaw> = [
         name: 'invoices',
         path: 'invoices',
         component: () => import('../pages/warehouse/invoice/index.vue'),
+      },
+       {
+        name: 'warehouse-categories',
+        path: 'warehouse-categories',
+        component: () => import('../pages/warehouse/user/categories.vue'),
+      },
+       {
+        name: 'warehouse-companies',
+        path: 'warehouse-companies',
+        component: () => import('../pages/warehouse/user/companies.vue'),
       },
        {
         name: 'invoice_show',

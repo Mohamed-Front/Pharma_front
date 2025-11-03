@@ -457,7 +457,7 @@ const incrementQuantity = async (id) => {
 
   cartLoading.value[id] = true;
   try {
-    const response = await axios.post('/api/cart/add/item', {
+    const response = await axios.post('/api/cart/add/item?update=1', {
       product_id: item.product_id,
       quantity: item.quantity + 1,
     });
@@ -479,7 +479,7 @@ const decrementQuantity = async (id) => {
 
   cartLoading.value[id] = true;
   try {
-    const response = await axios.post('/api/cart/add/item', {
+    const response = await axios.post('/api/cart/add/item?update=1', {
       product_id: item.product_id,
       quantity: item.quantity - 1,
     });
