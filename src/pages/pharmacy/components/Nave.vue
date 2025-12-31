@@ -122,7 +122,7 @@ import 'primeicons/primeicons.css';
 import LocaleSelect from '../../../components/LocaleSelect.vue';
 import SearchBar from './SearchBar.vue';
 import Notification from './Notification.vue';
-import { useAuthStore } from '@/stores/auth';
+import { useAuthStore } from '@/stores/Auth';
 
 // Localization
 const { t } = useI18n();

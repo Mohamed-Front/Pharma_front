@@ -13,7 +13,7 @@
 <script setup lang="ts">
   import { reactive } from 'vue'
 
-  const expandedNodes = reactive([1, 2])
+  let expandedNodes = reactive([1, 2])
   const electronics = reactive([
     { id: 3, label: 'Cellphones' },
     { id: 4, label: 'Camera Body Kits' },
