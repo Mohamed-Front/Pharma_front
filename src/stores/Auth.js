@@ -33,7 +33,7 @@ export const useAuthStore = defineStore('Auth', {
   actions: {
 
     async handleLogin(data) {
-      this.authErrors = ["Invalid credentials. Please try again."]
+
       this.loading = true
 
       try {

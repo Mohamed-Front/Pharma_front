@@ -257,7 +257,7 @@ onMounted(() => {
           <div class="mt-3 p-paginator p-component p-unselectable-text" v-if="totalPages > 0">
             <div class="p-paginator-left-content">
               <span class="p-paginator-current">
-                {{ t('invoice.showing') }} {{ from }} {{ t('invoice.to') }} {{ to }} {{ t('invoice.of') }} {{ totalRecords }} {{ t('invoice.entries') }}
+                {{ t('product.showing') }} {{ from }} {{ t('product.to') }} {{ to }} {{ t('product.of') }} {{ totalRecords }} {{ t('product.entries') }}
               </span>
             </div>
             <div class="p-paginator-right-content">

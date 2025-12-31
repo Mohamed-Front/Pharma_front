@@ -100,7 +100,6 @@
                     loading="lazy"
                     @error="handleImageError"
                   />
-                  <i v-else :class="['pi', getProductIcon(item.product.scientific_structure[0]), 'text-green-600 text-2xl']"></i>
                 </div>
                 <div class="flex-grow mx-4">
                   <h3 class="font-bold text-lg">{{ item.product.commercial_name }}</h3>
@@ -133,18 +132,12 @@
                       </p>
 
                       <p>
-                        <strong>{{ t('cart.minLimit') }}:</strong> {{ offer.min_limit }} {{ getUnit(offer.quantity_unit) }}
+                        <strong>{{ t('cart.minLimit') }}:</strong> {{ offer.min_limit }}
                         <span class="mx-2">|</span>
-                        <strong>{{ t('cart.maxLimit') }}:</strong> {{ offer.max_limit }} {{ getUnit(offer.quantity_unit) }}
+                        <strong>{{ t('cart.maxLimit') }}:</strong> {{ offer.max_limit }}
                       </p>
 
-                      <p v-if="qualifiesForGift(item.quantity, offer)" class="text-green-700 font-bold mt-1">
-                        <i class="pi pi-check-circle mr-1"></i>
-                        {{ t('cart.eligibleGifts', { count: calculateEligibleGifts(item.quantity, offer) }) }}
-                      </p>
-                      <p v-else class="text-orange-600 text-xs">
-                        {{ t('cart.needMore', { needed: offer.min_limit - item.quantity }) }}
-                      </p>
+
 
                       <p class="text-xs text-gray-600 mt-1">
                         {{ t('cart.validUntil') }}: {{ formatDate(offer.end_date) }}
@@ -165,6 +158,7 @@
                     <i class="pi pi-trash text-lg"></i>
                   </button>
                 </div>
+
                 <div class="flex items-center bg-gray-200 rounded-full px-2 py-1">
                   <button
                     class="w-8 h-8 rounded-full text-green-600 font-bold hover:bg-gray-300 transition duration-300"
@@ -173,7 +167,16 @@
                   >
                     +
                   </button>
-                  <span class="px-4 font-bold text-lg">{{ item.quantity }}</span>
+
+                  <input
+                    type="number"
+                    :value="item.quantity"
+                    min="1"
+                    class="px-2 w-16 text-center font-bold text-lg bg-transparent focus:outline-none quantity-input"
+                    :disabled="cartLoading[item.id]"
+                    @change="event => updateQuantity(item.id, event.target.value)"
+                  />
+
                   <button
                     class="w-8 h-8 rounded-full text-green-600 font-bold hover:bg-gray-300 transition duration-300"
                     :disabled="cartLoading[item.id] || item.quantity <= 1"
@@ -200,7 +203,7 @@
             :key="warehouse.warehouse_id"
             class="mb-6"
           >
-             <h3 class="text-lg font-semibold text-gray-700 mb-4" v-if="selectedTab !== 'all' && getGiftItems(warehouse).length > 0">
+              <h3 class="text-lg font-semibold text-gray-700 mb-4" v-if="selectedTab !== 'all' && getGiftItems(warehouse).length > 0">
               {{ warehouse.name }}
             </h3>
             <div
@@ -218,13 +221,12 @@
                     loading="lazy"
                     @error="handleImageError"
                   />
-                  <i v-else :class="['pi', getProductIcon(item.product.scientific_structure[0]), 'text-purple-600 text-2xl']"></i>
                 </div>
                 <div class="flex-grow mx-4">
                   <h3 class="font-bold text-lg text-purple-800">{{ item.product.commercial_name }}</h3>
                   <p class="text-sm text-purple-600">{{ t('cart.gift') }} - {{ t('cart.complimentary') }}</p>
                   <div class="flex flex-wrap gap-2 mt-2">
-                     <span
+                      <span
                       v-for="tag in item.product.scientific_structure"
                       :key="tag"
                       class="bg-purple-200 text-purple-800 text-xs font-medium px-3 py-1 rounded-full"
@@ -264,10 +266,11 @@
 </template>
 
 <script setup>
+// (تم إدراج كود Script بالكامل من الرد السابق لضمان العمل)
 import { ref, computed, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { useI18n } from 'vue-i18n';
-import axios from 'axios'; // تأكد من استيراد axios
+import axios from 'axios';
 import ProgressSpinner from 'primevue/progressspinner';
 import Toast from 'primevue/toast';
 import { useRouter } from 'vue-router';
@@ -284,19 +287,16 @@ const selectedTab = ref('all');
 const loading = ref(false);
 const cartLoading = ref({});
 
-// --- Helper Functions for UI Logic (No changes needed here) ---
+// --- Helper Functions for UI Logic (Keep as is) ---
 
-// Get non-gift items from a specific warehouse
 const getNonGiftItems = (warehouse) => {
   return warehouse.items.filter(item => item.is_gift !== 1);
 };
 
-// Get gift items from a specific warehouse
 const getGiftItems = (warehouse) => {
   return warehouse.items.filter(item => item.is_gift === 1);
 };
 
-// Count items in the current filtered view
 const nonGiftItemsCount = computed(() => {
   return filteredWarehouses.value.flatMap(w => getNonGiftItems(w)).length;
 });
@@ -306,7 +306,6 @@ const giftItemsCount = computed(() => {
 });
 
 
-// Helper function to get the correct list of NON-GIFT items for the summary calculations
 const getSummaryItems = (warehousesList, tab) => {
   let items = [];
   if (tab === 'all') {
@@ -315,12 +314,10 @@ const getSummaryItems = (warehousesList, tab) => {
     const warehouse = warehousesList.find(w => w.warehouse_id === tab);
     items = warehouse ? warehouse.items : [];
   }
-  // IMPORTANT: Filter out gift items for calculation of subtotal/discount/total
   return items.filter(item => item.is_gift !== 1);
 };
 
 
-// Computed property for filtered warehouses (only affects display of items by tab)
 const filteredWarehouses = computed(() => {
   if (selectedTab.value === 'all') {
     return warehouses.value;
@@ -328,7 +325,6 @@ const filteredWarehouses = computed(() => {
   return warehouses.value.filter(w => w.warehouse_id === selectedTab.value);
 });
 
-// Computed properties for order summary (Only use non-gift items for calculation)
 const subtotal = computed(() => {
   const items = getSummaryItems(warehouses.value, selectedTab.value);
   return items.reduce((sum, item) => sum + (item.original_price || 0), 0);
@@ -345,7 +341,6 @@ const finalTotal = computed(() => {
 });
 
 
-// Map scientific_structure to PrimeVue icons
 const getProductIcon = (form) => {
   const formMap = {
     Paracetamol: 'pi-tablet',
@@ -355,13 +350,11 @@ const getProductIcon = (form) => {
   return formMap[form] || 'pi-tablet';
 };
 
-// Format date
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
-// Handle image error
 const handleImageError = (event) => {
   event.target.style.display = 'none';
   if (event.target.nextElementSibling) {
@@ -369,18 +362,15 @@ const handleImageError = (event) => {
   }
 };
 
-// Unit mapping
 const getUnit = (unit) => {
   const units = { 1: t('cart.unit'), 2: t('cart.box'), 3: t('cart.pack'), 5: t('cart.unit') };
   return units[unit] || t('cart.unit');
 };
 
-// Check if user qualifies for gift
 const qualifiesForGift = (quantity, offer) => {
   return quantity >= offer.min_limit;
 };
 
-// Calculate how many gifts user gets
 const calculateEligibleGifts = (quantity, offer) => {
   if (!qualifiesForGift(quantity, offer)) return 0;
   const sets = Math.floor(quantity / offer.min_limit);
@@ -391,20 +381,17 @@ const calculateEligibleGifts = (quantity, offer) => {
 };
 
 
-// --- API Handlers (Updated fetchCart) ---
+// --- API Handlers ---
 
-// Fetch cart data from API
 const fetchCart = async () => {
   loading.value = true;
   try {
-    // ⭐️ هذا هو الاستدعاء الفعلي لنقطة نهاية API
     const response = await axios.get('/api/cart/get');
 
     if (response.data.success && response.data.data) {
       warehouses.value = response.data.data.warehouses.map((warehouse) => ({
         ...warehouse,
         name: warehouse.warehouse_name || `Warehouse ${warehouse.warehouse_id}`,
-        // Sort items: gifts (1) to the end of the list for better non-gift grouping/display.
         items: warehouse.items.map(item => ({
           ...item,
           description: item.description || t('cart.defaultDescription'),
@@ -419,7 +406,6 @@ const fetchCart = async () => {
   } catch (error) {
     warehouses.value = [];
     cartItems.value = [];
-    // تحقق من وجود رسالة خطأ محددة أو استخدم الرسالة العامة
     const errorMessage = error.response?.data?.message || t('cart.fetchError');
     toast.add({ severity: 'error', summary: t('error'), detail: errorMessage, life: 3000 });
     console.error('Error fetching cart:', error);
@@ -429,10 +415,9 @@ const fetchCart = async () => {
 };
 
 
-// Remove item from cart (Only non-gift items)
 const removeItem = async (id) => {
   const item = cartItems.value.find(i => i.id === id);
-  if (item && item.is_gift === 1) return; // Cannot remove gifts
+  if (item && item.is_gift === 1) return;
 
   cartLoading.value[id] = true;
   try {
@@ -450,51 +435,54 @@ const removeItem = async (id) => {
   }
 };
 
-// Increment quantity (Only non-gift items)
+const updateQuantity = async (id, newQuantity) => {
+  const item = cartItems.value.find(i => i.id === id);
+  const quantity = parseInt(newQuantity);
+
+  if (!item || item.is_gift === 1) return;
+
+  if (isNaN(quantity) || quantity < 1) {
+    toast.add({ severity: 'warn', summary: t('warning'), detail: t('cart.invalidQuantity'), life: 3000 });
+    await fetchCart();
+    return;
+  }
+
+  if (quantity === item.quantity) return;
+
+  cartLoading.value[id] = true;
+  try {
+    const response = await axios.post('/api/cart/add/item?update=1', {
+      product_id: item.product_id,
+      quantity: quantity,
+    });
+    if (response.data.success) {
+      await fetchCart();
+      toast.add({ severity: 'success', summary: t('success'), detail: t('cart.updateSuccess'), life: 3000 });
+    } else {
+      throw new Error(response.data.message || t('cart.updateError'));
+    }
+  } catch (error) {
+    await fetchCart();
+    toast.add({ severity: 'error', summary: t('error'), detail: error.message || t('cart.updateError'), life: 3000 });
+  } finally {
+    delete cartLoading.value[id];
+  }
+};
+
+
 const incrementQuantity = async (id) => {
   const item = cartItems.value.find(i => i.id === id);
-  if (!item || item.is_gift === 1) return; // Cannot change gift quantity
-
-  cartLoading.value[id] = true;
-  try {
-    const response = await axios.post('/api/cart/add/item?update=1', {
-      product_id: item.product_id,
-      quantity: item.quantity + 1,
-    });
-    if (response.data.success) {
-      await fetchCart();
-      toast.add({ severity: 'success', summary: t('success'), detail: t('cart.updateSuccess'), life: 3000 });
-    }
-  } catch (error) {
-    toast.add({ severity: 'error', summary: t('error'), detail: error.message || t('cart.updateError'), life: 3000 });
-  } finally {
-    delete cartLoading.value[id];
-  }
+  if (!item || item.is_gift === 1) return;
+  await updateQuantity(id, item.quantity + 1);
 };
 
-// Decrement quantity (Only non-gift items)
 const decrementQuantity = async (id) => {
   const item = cartItems.value.find(i => i.id === id);
-  if (!item || item.quantity <= 1 || item.is_gift === 1) return; // Cannot change gift quantity
-
-  cartLoading.value[id] = true;
-  try {
-    const response = await axios.post('/api/cart/add/item?update=1', {
-      product_id: item.product_id,
-      quantity: item.quantity - 1,
-    });
-    if (response.data.success) {
-      await fetchCart();
-      toast.add({ severity: 'success', summary: t('success'), detail: t('cart.updateSuccess'), life: 3000 });
-    }
-  } catch (error) {
-    toast.add({ severity: 'error', summary: t('error'), detail: error.message || t('cart.updateError'), life: 3000 });
-  } finally {
-    delete cartLoading.value[id];
-  }
+  if (!item || item.quantity <= 1 || item.is_gift === 1) return;
+  await updateQuantity(id, item.quantity - 1);
 };
 
-// Proceed to checkout (Uses all items in the filtered warehouses)
+
 const proceedToCheckout = async () => {
   const activeWarehouses = filteredWarehouses.value.map(w => w.warehouse_id);
 
@@ -508,11 +496,9 @@ const proceedToCheckout = async () => {
 
     toast.add({ severity: 'info', summary: t('info'), detail: t('cart.checkoutProcessing'), life: 3000 });
 
-    // ⭐️ استدعاء API لإنشاء الطلب
     const response = await axios.post(`/api/order?select=${encodeURIComponent(select)}`);
     if (response.data.success) {
       toast.add({ severity: 'success', summary: t('success'), detail: t('cart.orderSuccess'), life: 3000 });
-      // Reset state after successful checkout
       await fetchCart();
       selectedTab.value = 'all';
     } else {
@@ -523,7 +509,6 @@ const proceedToCheckout = async () => {
   }
 };
 
-// Select tab
 const selectTab = (tab) => {
   selectedTab.value = tab;
 };
@@ -545,5 +530,20 @@ onMounted(fetchCart);
 
 img + i {
   display: none;
+}
+
+// ⭐️ إضافة CSS لإلغاء أسهم حقل الإدخال
+.quantity-input {
+  // لإخفاء الأسهم في متصفح كروم (Chrome), سفاري (Safari), وإيدج (Edge)
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  // لإخفاء الأسهم في متصفح فايرفوكس (Firefox)
+  &[type='number'] {
+    -moz-appearance: textfield;
+  }
 }
 </style>

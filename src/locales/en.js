@@ -51,6 +51,48 @@ export default {
     "settings": "Settings",
     "addresses": "Addresses"
   },
+  "cities": "Cities",
+  "city": {
+    "name": "Name",
+    "lat": "Latitude",
+    "long": "Longitude",
+    "type": "Type",
+    "pharmacy": "Pharmacy",
+    "warehouse": "Warehouse",
+    "selectType": "Select Type",
+    "new": "New City",
+    "export": "Export CSV",
+    "createTitle": "Create City",
+    "editTitle": "Edit City",
+    "createSuccess": "City created successfully",
+    "updateSuccess": "City updated successfully",
+    "deleteSuccess": "City deleted successfully",
+    "createError": "Failed to create city",
+    "updateError": "Failed to update city",
+    "deleteError": "Failed to delete city",
+    "loadError": "Failed to load cities",
+    "noData": "No cities found",
+    "deleteConfirmTitle": "Delete City",
+    "deleteConfirmMessage": "Are you sure you want to delete this city?"
+  },
+  "showing": "Showing",
+  "to": "to",
+  "of": "of",
+  "entries": "entries",
+  "search": "Search...",
+  "actions": "Actions",
+  "edit": "Edit",
+  "delete": "Delete",
+  "save": "Save",
+  "cancel": "Cancel",
+  "yes": "Yes",
+  "no": "No",
+  "success": "Success",
+  "error": "Error",
+  "validation": {
+    "required": "This field is required",
+    "number": "Must be a valid number"
+  },
    "featured_warehouses": " Warehouses",
   "warehouse_expertise": "We have extensive experience in",
   "warehouses": "Warehouses",
@@ -65,8 +107,30 @@ export default {
     "title": "Top Selling Products",
     "all_products": "All Products"
   },
+  "passwordRequest": {
+    "managementTitle": "Password Reset Requests Management",
+    "search": "Search...",
+    "export": "Export",
+    "new": "New Request",
+    "number": "Request Number",
+    "requestableName": "User/Entity Name",
+    "type": "Type",
+    "phone": "Phone",
+    "status": "Status",
+    "actions": "Actions",
+    "noData": "No Password Reset Requests Found.",
+    "loadError": "Error loading requests. Please try again.",
+    "deleteSuccess": "Request deleted successfully.",
+    "deleteError": "Failed to delete request.",
+    "deleteConfirmTitle": "Confirm Deletion",
+    "deleteConfirmMessage": "Are you sure you want to delete this password reset request?",
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "entries": "entries"
+  },
   "notifications": {
-
+    mark_all_read:"mark_all_read",
     "admin_messages": "Admin Messages",
     "pharmacy_notes": "Pharmacy Notes",
     "warehouse_notes": "Warehouse Notes"
@@ -390,6 +454,38 @@ permission:{
     }
   },
   auth: {
+    "welcome_to_pharma": "Welcome to Pharma Platform",
+    "welcome_description": "Manage your pharmacy or storehouse with ease and efficiency.",
+
+    "register_as": "Create Your Account",
+    "select_account_type": "Please select the type of account you want to register",
+
+    "pharmacy": "Pharmacy",
+    "pharmacy_description": "Register as a retail pharmacy",
+
+    "storehouse": "Storehouse / Distributor",
+    "storehouse_description": "Register as a warehouse or medical distributor",
+
+    "continue": "Continue",
+    "already_have_account": "Already have an account?",
+    "sign_in": "Sign in",
+
+    "change_password": "Change Your Password",
+    "enter_new_password": "Enter a strong new password to secure your account",
+    "new_password": "New Password",
+    "confirm_new_password": "Confirm New Password",
+    "show": "Show",
+    "hide": "Hide",
+
+    "password_too_short": "Password must be at least 6 characters long",
+    "passwords_do_not_match": "Passwords do not match",
+
+    "password_changed_successfully": "Your password has been successfully changed!",
+    "sign_in_now": "Sign in now",
+    "back_to_login": "Back to login",
+
+    "invalid_or_missing_token": "This password reset link is invalid or has expired.",
+    "change_password_failed": "Failed to change password. Please request a new reset link.",
     // Login Section
       pharmacy:"pharmacy",
       address:"Address",

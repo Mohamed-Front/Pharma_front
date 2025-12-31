@@ -57,9 +57,9 @@
               class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-300"
               :class="{ 'border-red-500': errors.city }"
             >
-              <option value="" disabled selected>اختر المدينة</option>
-              <option v-for="city in cities" :key="city.Governorate_en" :value="city.Governorate_en" >
-                {{ city.Governorate_ar }} ({{ city.Governorate_en }})
+            <option value="" disabled selected>اختر المدينة</option>
+              <option v-for="city in cities" :key="city.name" :value="city.name" >
+                {{ city.name }}
               </option>
             </select>
             <small class="text-red-500 mt-1 block" v-if="errors.city">{{ errors.city }}</small>
@@ -185,24 +185,20 @@
         </div>
 
         <!-- Location Information -->
-        <div class="space-y-6">
+        <div v-if="iframeSrc" class="space-y-6">
           <h4 class="text-xl font-semibold text-gray-800 bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">
             {{ $t('auth.location_information') }}
           </h4>
-          <div class="relative">
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{ $t('auth.location') }}</label>
-            <GoogleMap
-              @click="handleMapClick"
-              style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden;"
-              :center="{ lat: form.lat ? parseFloat(form.lat) : 33.5158, lng: form.long ? parseFloat(form.long) : 36.2939 }"
-              :zoom="14"
-              class="shadow-md"
-            >
-              <Marker
-                v-if="form.lat && form.long"
-                :options="{ position: { lat: parseFloat(form.lat), lng: parseFloat(form.long) } }"
-              />
-            </GoogleMap>
+            <div class="w-full h-80 rounded-lg overflow-hidden shadow-md">
+              <iframe
+                :src="iframeSrc"
+                width="100%"
+                height="100%"
+                style="border:0;"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+
 
           </div>
         </div>
@@ -429,10 +425,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { GoogleMap, Marker, Circle } from 'vue3-google-map';
-
 import axios from 'axios'
 import { useToast } from 'primevue/usetoast'
 import { useRouter } from 'vue-router'
@@ -441,23 +435,17 @@ const { t } = useI18n()
 const toast = useToast()
 const router = useRouter()
 
-// Cities data
-const cities = ref([
-  { Governorate_ar: 'دمشق', Governorate_en: 'Damascus', Latitude: 33.5158, Longitude: 36.2939, Status: 'active' },
-  { Governorate_ar: 'دمشق ريف', Governorate_en: 'Rif Dimashq', Latitude: 33.5719, Longitude: 36.402, Status: 'active' },
-  { Governorate_ar: 'حلب', Governorate_en: 'Aleppo', Latitude: 36.2019, Longitude: 37.1612, Status: 'not active' },
-  { Governorate_ar: 'حمص', Governorate_en: 'Homs', Latitude: 34.7308, Longitude: 36.709, Status: 'not active' },
-  { Governorate_ar: 'حماة', Governorate_en: 'Hama', Latitude: 35.1318, Longitude: 36.7578, Status: 'not active' },
-  { Governorate_ar: 'إدلب', Governorate_en: 'Idlib', Latitude: 35.9306, Longitude: 36.6339, Status: 'not active' },
-  { Governorate_ar: 'اللاذقية', Governorate_en: 'Latakia', Latitude: 35.5167, Longitude: 35.7833, Status: 'not active' },
-  { Governorate_ar: 'طرطوس', Governorate_en: 'Tartus', Latitude: 34.889, Longitude: 35.8866, Status: 'not active' },
-  { Governorate_ar: 'الرقة', Governorate_en: 'Raqqa', Latitude: 35.95, Longitude: 39.0167, Status: 'not active' },
-  { Governorate_ar: 'دير الزور', Governorate_en: 'Deir ez-Zor', Latitude: 35.3333, Longitude: 40.15, Status: 'not active' },
-  { Governorate_ar: 'الحسكة', Governorate_en: 'Al-Hasakah', Latitude: 36.502, Longitude: 40.747, Status: 'not active' },
-  { Governorate_ar: 'درعا', Governorate_en: 'Daraa', Latitude: 32.6189, Longitude: 36.1029, Status: 'not active' },
-  { Governorate_ar: 'السويداء', Governorate_en: 'As-Suwayda', Latitude: 32.708, Longitude: 36.569, Status: 'not active' },
-  { Governorate_ar: 'القنيطرة', Governorate_en: 'Quneitra', Latitude: 33.125, Longitude: 35.823, Status: 'not active' }
-])
+const cities = ref([])
+
+const Getcities = () => {
+  axios.get(`api/city?type=warehouse&status=1`).then((res) => {
+    cities.value = res.data.data
+  })
+}
+
+onMounted(() => {
+  Getcities()
+})
 
 // Form data
 const form = reactive({
@@ -498,7 +486,6 @@ const errors = reactive({
   email: ''
 })
 
-// Request data after successful submission
 const requestData = reactive({
   number: '',
   name: '',
@@ -553,7 +540,7 @@ const validateEmail = () => {
   }
 }
 
-// Form validation
+// Form validation - الصور غير مطلوبة
 const isFormValid = computed(() => {
   return (
     form.name.trim() !== '' &&
@@ -599,7 +586,7 @@ const onImageUpload = (event: Event | DragEvent, type: 'warehouse_license' | 'na
       })
       return
     }
-    if (file.size > 1024 * 1024) { // 1MB limit
+    if (file.size > 1024 * 1024) {
       toast.add({
         severity: 'error',
         summary: t('error'),
@@ -632,31 +619,27 @@ const editImage = (type: 'warehouse_license' | 'national_id' | 'warehouse_logo')
   if (input) input.click()
 }
 
-// Map click handler
-const handleMapClick = (event: any) => {
-  const clickedLatLng = event.latLng
-  const lat = clickedLatLng.lat()
-  const lng = clickedLatLng.lng()
-  form.lat = lat.toString()
-  form.long = lng.toString()
-  form.location_link = `https://www.google.com/maps?q=${lat},${lng}`
-}
-
-// Update map location when city is selected
 const updateMapLocation = () => {
-  const selectedCity = cities.value.find(city => city.Governorate_en === form.city)
+  const selectedCity = cities.value.find(city => city.name === form.city)
   if (selectedCity) {
-    form.lat = selectedCity.Latitude.toString()
-    form.long = selectedCity.Longitude.toString()
-    form.location_link = `https://www.google.com/maps?q=${selectedCity.Latitude},${selectedCity.Longitude}`
+    form.lat = selectedCity.lat.toString()
+    form.long = selectedCity.long.toString()
+    form.location_link = `https://www.google.com/maps?q=${selectedCity.lat},${selectedCity.long}`
   }
 }
+
+const iframeSrc = computed(() => {
+  if (form.lat && form.long) {
+    return `https://www.google.com/maps?q=${form.lat},${form.long}&hl=es;z=14&output=embed`
+  }
+  return ''
+})
 
 // Form submission
 const submitForm = async () => {
   submitted.value = true
 
-  // Validate form
+  // Validate required fields
   if (!form.name.trim()) errors.name = t('auth.warehouse_name_required')
   if (!form.country.trim()) errors.country = t('auth.country_required')
   if (!form.city.trim()) errors.city = t('auth.city_required')
@@ -667,9 +650,12 @@ const submitForm = async () => {
   validatePasswordConfirmation()
   validateEmail()
 
-  if (!isFormValid.value) return
+  if (!isFormValid.value) {
+    submitted.value = false
+    return
+  }
 
-  // Prepare form data for submission
+  // Prepare form data
   const formData = new FormData()
   formData.append('name', form.name)
   formData.append('country', form.country)
@@ -681,73 +667,56 @@ const submitForm = async () => {
   formData.append('password_confirmation', form.password_confirmation)
   if (form.email) formData.append('email', form.email)
   if (form.license_number) formData.append('license_number', form.license_number)
+  if (form.location_link) formData.append('location_link', form.location_link)
+
+  // إضافة الصور فقط إذا كانت موجودة (غير إجبارية)
   if (form.warehouse_license) formData.append('warehouse_license', form.warehouse_license)
   if (form.national_id) formData.append('national_id', form.national_id)
   if (form.warehouse_logo) formData.append('warehouse_logo', form.warehouse_logo)
-  if (form.location_link) formData.append('location_link', form.location_link)
 
   try {
     const response = await axios.post('/api/warehouse', formData)
 
-    // Save response data
     requestData.number = response.data.data.number
     requestData.name = response.data.data.name
     requestData.email = response.data.data.email || ''
     requestData.createdAt = response.data.data.created_at
 
-    // Show success toast
     toast.add({
       severity: 'success',
       summary: t('success'),
       detail: t('auth.request_submitted_successfully'),
       life: 3000
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error submitting form:', error)
-
+    toast.add({
+      severity: 'error',
+      summary: t('error'),
+      detail: error.response?.data?.message || t('auth.something_went_wrong'),
+      life: 5000
+    })
+    submitted.value = false
   }
 }
 
 // Reset form
 const resetForm = () => {
-  form.name = ''
-  form.country = ''
-  form.city = ''
-  form.address = ''
-  form.owner_name = ''
-  form.phone = ''
-  form.password = ''
-  form.password_confirmation = ''
-  form.email = ''
-  form.license_number = ''
-  form.warehouse_license = null
-  form.warehouse_license_name = ''
-  form.warehouse_license_preview = null
-  form.national_id = null
-  form.national_id_name = ''
-  form.national_id_preview = null
-  form.warehouse_logo = null
-  form.warehouse_logo_name = ''
-  form.warehouse_logo_preview = null
-  form.lat = ''
-  form.long = ''
-  form.location_link = ''
+  Object.keys(form).forEach(key => {
+    // @ts-ignore
+    form[key] = key.includes('preview') || key.includes('_name') ? '' : key.includes('null') ? null : ''
+  })
+  form.country = 'سوريا'
 
-  errors.name = ''
-  errors.country = ''
-  errors.city = ''
-  errors.address = ''
-  errors.owner_name = ''
-  errors.phone = ''
-  errors.password = ''
-  errors.password_confirmation = ''
-  errors.email = ''
+  Object.keys(errors).forEach(key => {
+    // @ts-ignore
+    errors[key] = ''
+  })
 
   submitted.value = false
-  router.push({name:'warehouse-request'})
+  router.push({ name: 'warehouse-request' })
 }
 </script>
-
 <style scoped>
 /* Custom styles for enhanced aesthetics */
 .transition-all {

@@ -91,10 +91,10 @@ onMounted(() => {
         <SwiperSlide
           v-for="category in categories"
           :key="category.id"
-          class="flex flex-col items-center border p-6 bg-white rounded-lg shadow-sm   hover:shadow-md transition-shadow"
+          class="flex flex-col cursor-pointer items-center border p-6 bg-white rounded-lg shadow-sm   hover:shadow-md transition-shadow"
           @click="router.push({ name: 'pharmacy-category-details', params: { id: category.id } })"
         >
-           <img :src="category?.media[0]?.url" class="m-auto w-10 h-10">
+           <img :src="category?.media[0]?.url" class="m-auto w-16 h-10">
           <p class="text-sm font-semibold text-center pt-2 text-gray-700">
             {{ truncateName(appLang === 'en' ? category.name_en : category.name_ar, 20) }}
           </p>

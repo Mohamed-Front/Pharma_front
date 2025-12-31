@@ -391,35 +391,33 @@ onMounted(() => {
             :class="{ 'p-invalid': errors.price_unit }"
           />
         </div>
-
-        <!-- ==== تاريخ البداية (Calendar) - غير إجباري ==== -->
-        <div class="space-y-2">
+      <div class="space-y-2">
           <label for="expiration_from" class="block text-sm font-medium text-gray-700">
             {{ $t('product.expiration_from') }}
           </label>
-          <Calendar
-            id="expiration_from"
+          <InputText
+
+            type="date"
             v-model="productData.expiration_from"
-            dateFormat="yy-mm-dd"
-            :showIcon="true"
-            :manualInput="false"
+            mode="decimal"
             class="w-full"
           />
+
         </div>
 
-        <!-- ==== تاريخ النهاية (Calendar) - غير إجباري ==== -->
+        <!-- Expiration To -->
         <div class="space-y-2">
           <label for="expiration_to" class="block text-sm font-medium text-gray-700">
             {{ $t('product.expiration_to') }}
           </label>
-          <Calendar
-            id="expiration_to"
+            <InputText
+
+            type="date"
             v-model="productData.expiration_to"
-            dateFormat="yy-mm-dd"
-            :showIcon="true"
-            :manualInput="false"
+            mode="decimal"
             class="w-full"
           />
+
         </div>
 
         <!-- ==== ملاحظات التخزين ==== -->

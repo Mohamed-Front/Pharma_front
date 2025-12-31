@@ -47,6 +47,10 @@ pre {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+ border-color: #1B8A45 !important;
+  color: #1B8A45 !important;
+}
 .p-button,
 .p-button.p-button-success {
   background-color: #1B8A45 !important;

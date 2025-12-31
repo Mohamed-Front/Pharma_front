@@ -136,7 +136,7 @@ onMounted(() => {
         @click="WarehouseDetails(warehouse.id)"
           v-for="warehouse in filteredWarehouses"
           :key="warehouse.id"
-          class="bg-white rounded-lg shadow-md p-6 border-t-4 border-green-500 flex flex-col"
+          class="bg-white cursor-pointer rounded-lg shadow-md p-6 border-t-4 border-green-500 flex flex-col"
         >
           <div class="flex items-center justify-between w-full mb-4">
             <div class="flex items-center gap-2">
@@ -158,7 +158,7 @@ onMounted(() => {
             />
             <div>
               <p class="text-sm text-gray-600">{{ warehouse.description_ar }}</p>
-              <p class="text-sm text-gray-600">{{ warehouse.address }}</p>
+              <p class="text-sm text-gray-600">{{ warehouse.city }}</p>
             </div>
           </div>
          <div class="flex flex-wrap gap-2 mt-auto w-full">

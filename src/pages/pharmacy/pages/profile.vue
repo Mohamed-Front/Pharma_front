@@ -32,16 +32,8 @@
       <div class="flex items-start gap-4">
         <div class="flex flex-col items-end gap-2">
           <div class="flex items-center gap-2 mb-2 bg-[#DCFCE7] px-2 rounded-md">
-            <span class="text-sm font-semibold text-gray-700">{{ t(`profile.status.${profile.status_description}`) }}</span>
-            <span
-              :class="[
-                'p-1 rounded-full',
-                profile.status_description === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700',
-              ]"
-            >
-              <i class="pi pi-check text-xs" v-if="profile.status_description === 'active'"></i>
-              <i class="pi pi-times text-xs" v-else></i>
-            </span>
+            <span class="text-sm font-semibold text-gray-700">{{ t(`${profile.status_description}`) }}</span>
+
           </div>
           <button
             @click="openEditProfileModal"

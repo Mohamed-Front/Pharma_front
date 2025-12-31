@@ -5,9 +5,9 @@
         <!-- Logo and Main Menu Section -->
         <div class="flex items-center">
           <!-- Logo -->
-          <div class="flex-shrink-0 flex items-center">
+          <a href="/" class="flex-shrink-0 flex items-center">
             <img class="h-10 w-auto" src="../../../assets/navelogo.png" alt="Pharma Bank Logo">
-          </div>
+          </a>
 
           <!-- Desktop Menu -->
           <div class="hidden md:flex items-center lg:mx-4 space-x-4 space-x-reverse ml-10">
@@ -50,7 +50,7 @@
           <!-- Search Bar -->
           <SearchBar />
           <!-- Shopping Cart Icon -->
-          <a v-if="authStore.pharmacyauthenticated" href="/cart" class="p-2 text-gray-800 hover:text-green-600 focus:outline-none">
+          <a v-if="authStore.pharmacyauthenticated" href="/cart" class="p-2 mx-1 text-gray-800 hover:text-green-600 focus:outline-none">
             <i class="pi pi-shopping-cart text-xl"></i>
           </a>
           <!-- Notification Icon -->

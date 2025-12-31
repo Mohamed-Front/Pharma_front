@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-    <div class="w-full  bg-white rounded-2xl p-8">
+    <div class="w-full bg-white rounded-2xl p-8">
       <h2 class="text-3xl font-bold text-center text-gray-800 mb-8 bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">
         {{ $t('auth.create_warehouse_account') }}
       </h2>
@@ -58,8 +58,8 @@
               :class="{ 'border-red-500': errors.city }"
             >
               <option value="" disabled selected>اختر المدينة</option>
-              <option v-for="city in cities" :key="city.Governorate_en" :value="city.Governorate_en" >
-                {{ city.Governorate_ar }} ({{ city.Governorate_en }})
+              <option v-for="city in cities" :key="city.name" :value="city.name" >
+                {{ city.name }}
               </option>
             </select>
             <small class="text-red-500 mt-1 block" v-if="errors.city">{{ errors.city }}</small>
@@ -184,31 +184,37 @@
           </div>
         </div>
 
-        <!-- Location Information -->
+        <!-- Location Information (iframe only) -->
         <div class="space-y-6">
           <h4 class="text-xl font-semibold text-gray-800 bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">
             {{ $t('auth.location_information') }}
           </h4>
-          <div class="relative">
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{ $t('auth.location') }}</label>
-            <GoogleMap
-              api-key="AIzaSyDZnJeq94aaneiA3QWUZdWYV9uKDEjxjas"
-              @click="handleMapClick"
-              style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden;"
-              :center="{ lat: form.lat ? parseFloat(form.lat) : 33.5158, lng: form.long ? parseFloat(form.long) : 36.2939 }"
-              :zoom="14"
-              class="shadow-md"
-            >
-              <Marker
-                v-if="form.lat && form.long"
-                :options="{ position: { lat: parseFloat(form.lat), lng: parseFloat(form.long) } }"
-              />
-            </GoogleMap>
 
+          <div v-if='iframeSrc' class="relative">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ $t('auth.location') }}</label>
+
+            <!-- Iframe that shows the selected location -->
+            <div class="w-full h-80 rounded-lg overflow-hidden shadow-md">
+              <iframe
+                :src="iframeSrc"
+                width="100%"
+                height="100%"
+                style="border:0;"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+
+            <!-- Optional: small link to open in new tab -->
+            <p class="mt-2 text-xs text-gray-500">
+              <a :href="form.location_link" target="_blank" class="text-green-600 hover:underline">
+                {{ $t('auth.open_in_google_maps') }}
+              </a>
+            </p>
           </div>
         </div>
 
-        <!-- Owner Information -->
+        <!-- Owner Information (images) -->
         <div class="space-y-6">
           <h4 class="text-xl font-semibold text-gray-800 bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">
             {{ $t('auth.owner_information') }}
@@ -430,10 +436,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive,onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { GoogleMap, Marker, Circle } from 'vue3-google-map';
-
 import axios from 'axios'
 import { useToast } from 'primevue/usetoast'
 import { useRouter } from 'vue-router'
@@ -442,25 +446,22 @@ const { t } = useI18n()
 const toast = useToast()
 const router = useRouter()
 
+// -------------------------------------------------
 // Cities data
-const cities = ref([
-  { Governorate_ar: 'دمشق', Governorate_en: 'Damascus', Latitude: 33.5158, Longitude: 36.2939, Status: 'active' },
-  { Governorate_ar: 'دمشق ريف', Governorate_en: 'Rif Dimashq', Latitude: 33.5719, Longitude: 36.402, Status: 'active' },
-  { Governorate_ar: 'حلب', Governorate_en: 'Aleppo', Latitude: 36.2019, Longitude: 37.1612, Status: 'not active' },
-  { Governorate_ar: 'حمص', Governorate_en: 'Homs', Latitude: 34.7308, Longitude: 36.709, Status: 'not active' },
-  { Governorate_ar: 'حماة', Governorate_en: 'Hama', Latitude: 35.1318, Longitude: 36.7578, Status: 'not active' },
-  { Governorate_ar: 'إدلب', Governorate_en: 'Idlib', Latitude: 35.9306, Longitude: 36.6339, Status: 'not active' },
-  { Governorate_ar: 'اللاذقية', Governorate_en: 'Latakia', Latitude: 35.5167, Longitude: 35.7833, Status: 'not active' },
-  { Governorate_ar: 'طرطوس', Governorate_en: 'Tartus', Latitude: 34.889, Longitude: 35.8866, Status: 'not active' },
-  { Governorate_ar: 'الرقة', Governorate_en: 'Raqqa', Latitude: 35.95, Longitude: 39.0167, Status: 'not active' },
-  { Governorate_ar: 'دير الزور', Governorate_en: 'Deir ez-Zor', Latitude: 35.3333, Longitude: 40.15, Status: 'not active' },
-  { Governorate_ar: 'الحسكة', Governorate_en: 'Al-Hasakah', Latitude: 36.502, Longitude: 40.747, Status: 'not active' },
-  { Governorate_ar: 'درعا', Governorate_en: 'Daraa', Latitude: 32.6189, Longitude: 36.1029, Status: 'not active' },
-  { Governorate_ar: 'السويداء', Governorate_en: 'As-Suwayda', Latitude: 32.708, Longitude: 36.569, Status: 'not active' },
-  { Governorate_ar: 'القنيطرة', Governorate_en: 'Quneitra', Latitude: 33.125, Longitude: 35.823, Status: 'not active' }
-])
+// -------------------------------------------------
+const cities = ref([])
+ const Getcities=()=>{
+  axios.get(`api/city?type=warehouse&status=1`).then((res)=>{
+    cities.value=res.data.data
+  })
+ }
 
+onMounted(() => {
+  Getcities()
+})
+// -------------------------------------------------
 // Form data
+// -------------------------------------------------
 const form = reactive({
   name: '',
   country: 'سوريا',
@@ -486,7 +487,9 @@ const form = reactive({
   location_link: ''
 })
 
-// Error messages
+// -------------------------------------------------
+// Errors
+// -------------------------------------------------
 const errors = reactive({
   name: '',
   country: '',
@@ -499,7 +502,9 @@ const errors = reactive({
   email: ''
 })
 
-// Request data after successful submission
+// -------------------------------------------------
+// Request data (after submit)
+// -------------------------------------------------
 const requestData = reactive({
   number: '',
   name: '',
@@ -514,7 +519,20 @@ const isDragging = ref({
   warehouse_logo: false
 })
 
-// Validation functions
+// -------------------------------------------------
+// Iframe source (computed)
+// -------------------------------------------------
+const iframeSrc = computed(() => {
+  if (form.location_link) {
+    // Google Maps embed URL from the simple q=lat,lng link
+     const embed = `https://www.google.com/maps?q=${form.lat},${form.long}&hl=es;z=14&output=embed`
+    return embed
+  }
+})
+
+// -------------------------------------------------
+// Validation helpers
+// -------------------------------------------------
 const validatePhone = () => {
   if (!form.phone.trim()) {
     errors.phone = t('auth.phone_required')
@@ -554,7 +572,9 @@ const validateEmail = () => {
   }
 }
 
-// Form validation
+// -------------------------------------------------
+// Form validity
+// -------------------------------------------------
 const isFormValid = computed(() => {
   return (
     form.name.trim() !== '' &&
@@ -579,47 +599,35 @@ const isFormValid = computed(() => {
   )
 })
 
-// Drag and drop handlers
+// -------------------------------------------------
+// Drag & drop image upload
+// -------------------------------------------------
 const handleDragOver = (type: 'warehouse_license' | 'national_id' | 'warehouse_logo') => {
   isDragging.value[type] = true
 }
-
 const handleDragLeave = (type: 'warehouse_license' | 'national_id' | 'warehouse_logo') => {
   isDragging.value[type] = false
 }
-
 const onImageUpload = (event: Event | DragEvent, type: 'warehouse_license' | 'national_id' | 'warehouse_logo') => {
   const file = (event as DragEvent).dataTransfer?.files?.[0] || (event.target as HTMLInputElement).files?.[0]
-  if (file) {
-    if (!file.type.match('image.*')) {
-      toast.add({
-        severity: 'error',
-        summary: t('error'),
-        detail: t('auth.invalid_image_type'),
-        life: 3000
-      })
-      return
-    }
-    if (file.size > 1024 * 1024) { // 1MB limit
-      toast.add({
-        severity: 'error',
-        summary: t('error'),
-        detail: t('auth.image_too_large'),
-        life: 3000
-      })
-      return
-    }
-    form[type] = file
-    form[`${type}_name`] = file.name
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      form[`${type}_preview`] = e.target?.result as string
-    }
-    reader.readAsDataURL(file)
-    isDragging.value[type] = false
-  }
-}
+  if (!file) return
 
+  if (!file.type.match('image.*')) {
+    toast.add({ severity: 'error', summary: t('error'), detail: t('auth.invalid_image_type'), life: 3000 })
+    return
+  }
+  if (file.size > 1024 * 1024) {
+    toast.add({ severity: 'error', summary: t('error'), detail: t('auth.image_too_large'), life: 3000 })
+    return
+  }
+
+  form[type] = file
+  form[`${type}_name`] = file.name
+  const reader = new FileReader()
+  reader.onload = e => (form[`${type}_preview`] = e.target?.result as string)
+  reader.readAsDataURL(file)
+  isDragging.value[type] = false
+}
 const removeImage = (type: 'warehouse_license' | 'national_id' | 'warehouse_logo') => {
   form[type] = null
   form[`${type}_name`] = ''
@@ -627,37 +635,39 @@ const removeImage = (type: 'warehouse_license' | 'national_id' | 'warehouse_logo
   const input = document.getElementById(type) as HTMLInputElement
   if (input) input.value = ''
 }
-
 const editImage = (type: 'warehouse_license' | 'national_id' | 'warehouse_logo') => {
   const input = document.getElementById(type) as HTMLInputElement
   if (input) input.click()
 }
 
-// Map click handler
+// -------------------------------------------------
+// Location helpers (city selection)
+// -------------------------------------------------
+const updateMapLocation = () => {
+  const selectedCity = cities.value.find(city => city.name === form.city)
+  if (selectedCity) {
+    form.lat = selectedCity.lat.toString()
+    form.long = selectedCity.long.toString()
+    form.location_link = `https://www.google.com/maps?q=${selectedCity.lat},${selectedCity.long}`
+  }
+}
+
+// (Map click is no longer needed – kept only to update link if you ever add a map again)
 const handleMapClick = (event: any) => {
-  const clickedLatLng = event.latLng
-  const lat = clickedLatLng.lat()
-  const lng = clickedLatLng.lng()
+  const lat = event.latLng.lat()
+  const lng = event.latLng.lng()
   form.lat = lat.toString()
   form.long = lng.toString()
   form.location_link = `https://www.google.com/maps?q=${lat},${lng}`
 }
 
-// Update map location when city is selected
-const updateMapLocation = () => {
-  const selectedCity = cities.value.find(city => city.Governorate_en === form.city)
-  if (selectedCity) {
-    form.lat = selectedCity.Latitude.toString()
-    form.long = selectedCity.Longitude.toString()
-    form.location_link = `https://www.google.com/maps?q=${selectedCity.Latitude},${selectedCity.Longitude}`
-  }
-}
-
-// Form submission
+// -------------------------------------------------
+// Submit
+// -------------------------------------------------
 const submitForm = async () => {
   submitted.value = true
 
-  // Validate form
+  // Quick validation
   if (!form.name.trim()) errors.name = t('auth.warehouse_name_required')
   if (!form.country.trim()) errors.country = t('auth.country_required')
   if (!form.city.trim()) errors.city = t('auth.city_required')
@@ -670,7 +680,6 @@ const submitForm = async () => {
 
   if (!isFormValid.value) return
 
-  // Prepare form data for submission
   const formData = new FormData()
   formData.append('name', form.name)
   formData.append('country', form.country)
@@ -688,61 +697,47 @@ const submitForm = async () => {
   if (form.location_link) formData.append('location_link', form.location_link)
 
   try {
-    const response = await axios.post('/api/warehouse-request', formData)
+    const { data } = await axios.post('/api/warehouse-request', formData)
+    requestData.number = data.data.number
+    requestData.name = data.data.name
+    requestData.email = data.data.email || ''
+    requestData.createdAt = data.data.created_at
 
-    // Save response data
-    requestData.number = response.data.data.number
-    requestData.name = response.data.data.name
-    requestData.email = response.data.data.email || ''
-    requestData.createdAt = response.data.data.created_at
-
-    // Show success toast
-    toast.add({
-      severity: 'success',
-      summary: t('success'),
-      detail: t('auth.request_submitted_successfully'),
-      life: 3000
-    })
-  } catch (error) {
-    console.error('Error submitting form:', error)
-
+    toast.add({ severity: 'success', summary: t('success'), detail: t('auth.request_submitted_successfully'), life: 3000 })
+  } catch (err) {
+    console.error(err)
+    toast.add({ severity: 'error', summary: t('error'), detail: t('auth.request_failed'), life: 3000 })
   }
 }
 
-// Reset form
+// -------------------------------------------------
+// Reset
+// -------------------------------------------------
 const resetForm = () => {
-  form.name = ''
-  form.country = ''
-  form.city = ''
-  form.address = ''
-  form.owner_name = ''
-  form.phone = ''
-  form.password = ''
-  form.password_confirmation = ''
-  form.email = ''
-  form.license_number = ''
-  form.warehouse_license = null
-  form.warehouse_license_name = ''
-  form.warehouse_license_preview = null
-  form.national_id = null
-  form.national_id_name = ''
-  form.national_id_preview = null
-  form.warehouse_logo = null
-  form.warehouse_logo_name = ''
-  form.warehouse_logo_preview = null
-  form.lat = ''
-  form.long = ''
-  form.location_link = ''
-
-  errors.name = ''
-  errors.country = ''
-  errors.city = ''
-  errors.address = ''
-  errors.owner_name = ''
-  errors.phone = ''
-  errors.password = ''
-  errors.password_confirmation = ''
-  errors.email = ''
+  Object.assign(form, {
+    name: '',
+    country: 'سوريا',
+    city: '',
+    address: '',
+    owner_name: '',
+    phone: '',
+    password: '',
+    password_confirmation: '',
+    email: '',
+    license_number: '',
+    warehouse_license: null,
+    warehouse_license_name: '',
+    warehouse_license_preview: null,
+    national_id: null,
+    national_id_name: '',
+    national_id_preview: null,
+    warehouse_logo: null,
+    warehouse_logo_name: '',
+    warehouse_logo_preview: null,
+    lat: '',
+    long: '',
+    location_link: ''
+  })
 
   submitted.value = false
   router.push('/')
@@ -750,34 +745,14 @@ const resetForm = () => {
 </script>
 
 <style scoped>
-/* Custom styles for enhanced aesthetics */
-.transition-all {
-  transition-property: all;
-  transition-duration: 300ms;
-  transition-timing-function: ease-in-out;
-}
+.transition-all { transition: all 300ms ease-in-out; }
+.border-red-500 { border-color: #ef4444; }
+.text-red-500 { color: #ef4444; }
 
-.border-red-500 {
-  border-color: #ef4444;
-}
-
-.text-red-500 {
-  color: #ef4444;
-}
-
-/* Hover effects for inputs and select */
 input:focus,
-select:focus {
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-}
+select:focus { box-shadow: 0 0 0 3px rgba(16, 185, 129, .2); }
 
-/* Button hover effect */
-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
+button:hover:not(:disabled) { transform: translateY(-1px); }
 
-/* Image upload area hover effect */
-label:hover {
-  background-color: rgba(16, 185, 129, 0.05);
-}
+label:hover { background-color: rgba(16, 185, 129, .05); }
 </style>

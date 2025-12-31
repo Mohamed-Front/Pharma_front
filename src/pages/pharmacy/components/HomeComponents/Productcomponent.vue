@@ -246,7 +246,7 @@ onMounted(() => {
               </span>
             </div>
             <span class="text-lg md:text-xl font-bold text-green-600">
-              {{ product.price +'$' }}
+              {{ parseInt(product.price)+product.price_unit  }}
             </span>
           </div>
           <!-- Add to Cart Button -->

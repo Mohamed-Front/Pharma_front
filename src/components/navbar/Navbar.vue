@@ -6,9 +6,12 @@
         <h1>{{ authStore.authName }}</h1>
 
         </div>
-          <div>
+          <a  v-if="authStore.adminauthenticated" href="/admin/dashboard">
           <img :src="authStore.image" class="h-10">
-        </div>
+          </a>
+          <a v-if="authStore.warehouseauthenticated" href="/warehouse/dashboard">
+          <img :src="authStore.image" class="h-10">
+          </a>
       </div>
     </template>
     <template #left>

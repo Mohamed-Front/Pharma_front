@@ -207,7 +207,7 @@ const viewNotification = (notification) => {
   const redirectId = notification.redirect_id || notification.metadata?.[notification.redirect_type.split('_')[0] + '_id']
 
   if (notification.type === 'pharmacy') {
-    if (notification.redirect_type === 'order_comment') {
+    if (notification.redirect_type === 'order_item_comment') {
       const orderId = notification.metadata?.order_id
       const commentId = notification.metadata?.comment_id
 
@@ -217,9 +217,7 @@ const viewNotification = (notification) => {
         router.push({
           name: 'order_show',
           params:{id:orderId},
-          query: {
-            comment_id: commentId
-          }
+
         })
       } else {
         console.warn("Pharmacy Comment Notification is missing required metadata.")
@@ -415,40 +413,3 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
-/* Custom styles for PrimeVue TabView */
-:deep(.p-tabview .p-tabview-nav) {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-}
-
-:deep(.p-tabview .p-tabview-panels) {
-  background: transparent !important;
-  border: none !important;
-}
-
-:deep(.p-tabview .p-tabview-nav li .p-tabview-nav-link) {
-  background: transparent !important;
-  border: none !important;
-  color: white !important;
-  transition: background-color 0.3s ease !important;
-}
-
-:deep(.p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link) {
-  background: white !important;
-  color: #1f2937 !important;
-  border-bottom: 3px solid #ffffff !important;
-  border-radius: 0 !important;
-}
-
-:deep(.p-tabview .p-tabview-nav li .p-tabview-nav-link:hover) {
-  background: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Ensure paginator is styled consistently */
-:deep(.p-paginator) {
-  margin-top: 1rem;
-  justify-content: center;
-}
-</style>

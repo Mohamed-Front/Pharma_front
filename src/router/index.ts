@@ -10,6 +10,16 @@ import RouteViewComponent from '../layouts/RouterBypass.vue'
 import UIRoute from '../pages/admin/ui/route'
 
 const routes: Array<RouteRecordRaw> = [
+   {
+        name: 'terms_conditions',
+        path: '/terms-condition',
+        component: () => import('../pages/pharmacy/pages/Terms_Conditions.vue'),
+      },
+       {
+        name: 'Politics_privacy',
+        path: '/Privacy-Policy',
+        component: () => import('../pages/pharmacy/pages/Politics_privacy.vue'),
+      },
   // Pharmacy routes
   {
     name: 'pharmacy',
@@ -88,16 +98,7 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/pharmacy/pages/profile.vue'),
       },
 
-        {
-        name: 'terms_conditions',
-        path: '/terms-condition',
-        component: () => import('../pages/pharmacy/pages/Terms_Conditions.vue'),
-      },
-       {
-        name: 'Politics_privacy',
-        path: '/politics-privacy',
-        component: () => import('../pages/pharmacy/pages/Politics_privacy.vue'),
-      },
+
       UIRoute,
     ],
   },
@@ -132,6 +133,13 @@ const routes: Array<RouteRecordRaw> = [
         path: 'roles',
         component: () => import('../pages/admin/roles/index.vue'),
       },
+       {
+        name: 'admin-password-request',
+        path: 'admin-password-request',
+        component: () => import('../pages/admin/password-request/index.vue'),
+      },
+
+
       {
         name: 'roles-update',
         path: 'roles-update/:id',
@@ -183,6 +191,12 @@ const routes: Array<RouteRecordRaw> = [
         path: 'categories',
         component: () => import('../pages/admin/Categories/index.vue'),
       },
+       {
+        name: 'city',
+        path: 'city',
+        component: () => import('../pages/admin/cities/index.vue'),
+      },
+
        {
         name: 'settings',
         path: 'settings',
@@ -348,6 +362,17 @@ const routes: Array<RouteRecordRaw> = [
         path: 'login',
         component: () => import('../pages/auth/login/Login.vue'),
       },
+      {
+        name: 'password-request',
+        path: 'password-request',
+        component: () => import('../pages/auth/login/PasswordRequest.vue'),
+      },
+        {
+        name: 'change-password',
+        path: 'change-password/:number',
+        component: () => import('../pages/auth/login/change-password.vue'),
+      },
+
       {
         name: 'register-storehouse',
         path: 'register-storehouse',

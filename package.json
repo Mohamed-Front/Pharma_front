@@ -39,6 +39,7 @@
     "ionicons": "^4.6.3",
     "leaflet": "^1.9.4",
     "leaflet-map": "^0.2.1",
+    "lodash-es": "^4.17.21",
     "maplibre-gl": "^2.1.9",
     "medium-editor": "^5.23.3",
     "pinia": "^2.0.16",

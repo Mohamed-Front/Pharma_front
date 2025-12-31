@@ -79,7 +79,7 @@ const initFiltersPharmacies = () => {
 const fetchWarehousesReport = () => {
   loadingWarehouses.value = true
   axios
-    .get('https://backend.pharmabank.sy/api/report/admin/warehouses', {
+    .get('https://pharma-service-838894765790.us-central1.run.app/api/report/admin/warehouses', {
       params: {
         page: currentPageWarehouses.value,
         limit: rowsPerPageWarehouses.value,
@@ -110,7 +110,7 @@ const fetchWarehousesReport = () => {
 const fetchPharmaciesReport = () => {
   loadingPharmacies.value = true
   axios
-    .get('https://backend.pharmabank.sy/api/report/admin/pharmacies', {
+    .get('https://pharma-service-838894765790.us-central1.run.app/api/report/admin/pharmacies', {
       params: {
         page: currentPagePharmacies.value,
         limit: rowsPerPagePharmacies.value,

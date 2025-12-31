@@ -65,29 +65,24 @@
           </div>
         </div>
 
-        <!-- Google Map -->
+        <!-- Map Link -->
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            {{ $t('settings.mapLocation') }}
+          <label for="map_link" class="block text-sm font-medium text-gray-700">
+            {{ $t('settings.mapLink') }}
           </label>
-          <GoogleMap
-            style="width: 100%; height: 400px; border-radius: 8px;"
-            :center="mapCenter"
-            :zoom="10"
-            @click="handleMapClick"
-            class="rounded border shadow-md"
-          >
-            <Marker
-              v-if="setting.lat && setting.long"
-              :options="{ position: { lat: parseFloat(setting.lat), lng: parseFloat(setting.long) } }"
-            />
-          </GoogleMap>
-          <div class="mt-2 text-sm text-gray-600">
-            {{ $t('settings.currentCoords') }}: {{ setting.lat || 'Not set' }}, {{ setting.long || 'Not set' }}
-          </div>
-          <div v-if="errors.lat || errors.long || error?.lat || error?.long" class="mt-1 text-red-500 text-sm">
-            <span v-if="errors.lat || error?.lat">{{ errors.lat || error.lat?.[0] }}</span>
-            <span v-if="errors.long || error?.long">{{ errors.long || error.long?.[0] }}</span>
+          <InputText
+            id="map_link"
+            v-model="setting.map_link"
+            type="url"
+            placeholder="https://maps.google.com/..."
+            class="mt-2 w-full border rounded p-2"
+            :class="{ 'border-red-500': errors.map_link }"
+          />
+          <p class="mt-1 text-xs text-gray-500">
+            {{ $t('settings.mapLinkHint') }}
+          </p>
+          <div v-if="errors.map_link || error?.map_link" class="mt-1 text-red-500 text-sm">
+            {{ errors.map_link || error.map_link?.[0] }}
           </div>
         </div>
 
@@ -263,11 +258,12 @@
           </div>
         </div>
 
-        <!-- Banners Upload -->
+        <!-- Banners Upload & Preview -->
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700">
             {{ $t('settings.banners') }} ({{ banners.length }})
           </label>
+
           <div class="flex justify-center mt-2">
             <label
               @dragover.prevent="handleDragOver('banners')"
@@ -284,6 +280,8 @@
                 class="hidden"
                 id="banners-upload"
               />
+
+              <!-- Empty state -->
               <div v-if="banners.length === 0" class="flex flex-col items-center justify-center py-8">
                 <div class="bg-blue-100 p-4 rounded-full mb-4">
                   <i class="pi pi-images text-blue-500 text-3xl"></i>
@@ -294,16 +292,17 @@
                 <p class="text-xs text-gray-400">{{ $t('settings.fileTypes') }}</p>
               </div>
 
-              <!-- Banners Grid -->
+              <!-- Grid with existing + add-more -->
               <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+                <!-- Existing banners -->
                 <div
                   v-for="(banner, index) in banners"
-                  :key="index"
+                  :key="banner.id ?? index"
                   class="relative group"
                 >
                   <img
                     :src="banner.preview"
-                    alt="Banner Preview"
+                    alt="Banner preview"
                     class="w-full h-32 object-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
                   />
                   <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center transition-all duration-300 rounded-lg">
@@ -330,7 +329,7 @@
                   </div>
                 </div>
 
-                <!-- Add More Button -->
+                <!-- Add more -->
                 <label
                   class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition h-32"
                 >
@@ -347,12 +346,13 @@
               </div>
             </label>
           </div>
+
           <div v-if="errors.banners" class="mt-1 text-red-500 text-sm">
             {{ errors.banners }}
           </div>
         </div>
 
-        <!-- Submit Button -->
+        <!-- Submit -->
         <Button
           type="submit"
           :label="isSubmitting ? $t('settings.updating') : $t('settings.update')"
@@ -375,17 +375,19 @@ import InputText from 'primevue/inputtext';
 import Editor from 'primevue/editor';
 import Button from 'primevue/button';
 import Toast from 'primevue/toast';
-import { GoogleMap, Marker } from 'vue3-google-map';
 
 const { t, locale } = useI18n();
 const toast = useToast();
-const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY';
-const apiUrl = import.meta.env.VITE_API_URL || 'https://backend.pharmabank.sy';
+const apiUrl = import.meta.env.VITE_API_URL || 'https://pharma-service-838894765790.us-central1.run.app';
 
-// Get/Set app language from localStorage
+// ---------- Language ----------
 const getAppLang = () => localStorage.getItem('appLang') || 'en';
 const appLang = ref(getAppLang());
 locale.value = appLang.value;
+watch(appLang, (newLang) => {
+  locale.value = newLang;
+  localStorage.setItem('appLang', newLang);
+});
 
 /* ------------------------------------------------------------------ */
 /* Reactive data                                                      */
@@ -395,48 +397,36 @@ const setting = ref({
   email: '',
   phone: '',
   location: '',
-  lat: '',
-  long: '',
+  map_link: '',
   privacy_policy_en: '',
   privacy_policy_ar: '',
   terms_and_conditions_en: '',
   terms_and_conditions_ar: '',
-  media: [],
+  media: [], // raw media array from API (kept for reference)
 });
 
 const currentPrivacyPolicy = computed({
   get: () => (appLang.value === 'ar' ? setting.value.privacy_policy_ar || '' : setting.value.privacy_policy_en || ''),
-  set: (value) => {
-    if (appLang.value === 'ar') {
-      setting.value.privacy_policy_ar = value;
-    } else {
-      setting.value.privacy_policy_en = value;
-    }
-  },
+  set: (v) => (appLang.value === 'ar' ? (setting.value.privacy_policy_ar = v) : (setting.value.privacy_policy_en = v)),
 });
 
 const currentTermsConditions = computed({
   get: () => (appLang.value === 'ar' ? setting.value.terms_and_conditions_ar || '' : setting.value.terms_and_conditions_en || ''),
-  set: (value) => {
-    if (appLang.value === 'ar') {
-      setting.value.terms_and_conditions_ar = value;
-    } else {
-      setting.value.terms_and_conditions_en = value;
-    }
-  },
+  set: (v) => (appLang.value === 'ar' ? (setting.value.terms_and_conditions_ar = v) : (setting.value.terms_and_conditions_en = v)),
 });
 
+/* ------------------------------------------------------------------ */
+/* UI state & validation                                              */
+/* ------------------------------------------------------------------ */
 const errors = reactive({
   email: '',
   phone: '',
   location: '',
-  lat: '',
-  long: '',
+  map_link: '',
   mainLogo: '',
   footerLogo: '',
   banners: '',
 });
-
 const error = ref({});
 const mainLogoFile = ref(null);
 const footerLogoFile = ref(null);
@@ -447,22 +437,12 @@ const isDraggingFooter = ref(false);
 const isDraggingBanners = ref(false);
 const isSubmitting = ref(false);
 
-// Banners
-const banners = ref([]); // { file, preview }
-
-watch(appLang, (newLang) => {
-  locale.value = newLang;
-  localStorage.setItem('appLang', newLang);
-});
+/* Banners – each item: { id?, preview, file? } */
+const banners = ref([]);
 
 /* ------------------------------------------------------------------ */
-/* Computed properties                                                */
+/* Form validation                                                    */
 /* ------------------------------------------------------------------ */
-const mapCenter = computed(() => ({
-  lat: setting.value.lat ? parseFloat(setting.value.lat) : 33.5138,
-  lng: setting.value.long ? parseFloat(setting.value.long) : 36.2765,
-}));
-
 const isFormValid = computed(() => {
   return (
     setting.value.email.trim() &&
@@ -470,133 +450,90 @@ const isFormValid = computed(() => {
     setting.value.phone.trim() &&
     setting.value.phone.length <= 15 &&
     setting.value.location.trim() &&
+    setting.value.map_link.trim() &&
     !errors.email &&
     !errors.phone &&
     !errors.location &&
-    !errors.lat &&
-    !errors.long &&
+    !errors.map_link &&
     !errors.mainLogo &&
     !errors.footerLogo &&
     !errors.banners
   );
 });
 
-/* ------------------------------------------------------------------ */
-/* Validation functions                                               */
-/* ------------------------------------------------------------------ */
 const validateEmail = () => {
-  if (!setting.value.email.trim()) {
-    errors.email = t('validation.emailRequired');
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(setting.value.email)) {
-    errors.email = t('validation.invalidEmail');
-  } else {
-    errors.email = '';
-  }
+  errors.email = !setting.value.email.trim()
+    ? t('validation.emailRequired')
+    : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(setting.value.email)
+      ? t('validation.invalidEmail')
+      : '';
 };
 
 const validatePhone = () => {
-  if (!setting.value.phone.trim()) {
-    errors.phone = t('validation.phoneRequired');
-  } else if (setting.value.phone.length > 15) {
-    errors.phone = t('validation.phoneTooLong');
-  } else {
-    errors.phone = '';
-  }
+  errors.phone = !setting.value.phone.trim()
+    ? t('validation.phoneRequired')
+    : setting.value.phone.length > 15
+      ? t('validation.phoneTooLong')
+      : '';
 };
 
 const validateForm = () => {
   validateEmail();
   validatePhone();
   errors.location = setting.value.location.trim() ? '' : t('validation.locationRequired');
-  errors.lat = setting.value.lat && !isNaN(parseFloat(setting.value.lat)) && parseFloat(setting.value.lat) >= -90 && parseFloat(setting.value.lat) <= 90 ? '' : t('validation.invalidLat');
-  errors.long = setting.value.long && !isNaN(parseFloat(setting.value.long)) && parseFloat(setting.value.long) >= -180 && parseFloat(setting.value.long) <= 180 ? '' : t('validation.invalidLong');
   errors.banners = banners.value.length > 0 ? '' : t('validation.atLeastOneBanner');
 };
 
 /* ------------------------------------------------------------------ */
-/* Google Map handlers                                                */
+/* Image helpers (main / footer)                                      */
 /* ------------------------------------------------------------------ */
-const handleMapClick = (event) => {
-  if (!event.latLng) {
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: t('error.mapClick'),
-      life: 3000,
-    });
-    return;
-  }
-  const lat = event.latLng.lat();
-  const lng = event.latLng.lng();
-  setting.value.lat = lat.toString();
-  setting.value.long = lng.toString();
-  validateForm();
+const handleDragOver = (type) => (e) => {
+  e.preventDefault();
+  if (type === 'main') isDraggingMain.value = true;
+  else if (type === 'footer') isDraggingFooter.value = true;
+  else if (type === 'banners') isDraggingBanners.value = true;
 };
 
-/* ------------------------------------------------------------------ */
-/* Image upload handlers                                              */
-/* ------------------------------------------------------------------ */
-const handleDragOver = (type) => {
-  return (event) => {
-    event.preventDefault();
-    if (type === 'main') isDraggingMain.value = true;
-    else if (type === 'footer') isDraggingFooter.value = true;
-    else if (type === 'banners') isDraggingBanners.value = true;
-  };
+const handleDragLeave = (type) => () => {
+  if (type === 'main') isDraggingMain.value = false;
+  else if (type === 'footer') isDraggingFooter.value = false;
+  else if (type === 'banners') isDraggingBanners.value = false;
 };
 
-const handleDragLeave = (type) => {
-  return () => {
-    if (type === 'main') isDraggingMain.value = false;
-    else if (type === 'footer') isDraggingFooter.value = false;
-    else if (type === 'banners') isDraggingBanners.value = false;
-  };
-};
-
-const handleImageUpload = (file, type) => {
+const checkImage = (file, key) => {
   if (!file.type.match('image.*')) {
-    const key = type === 'main' ? 'mainLogo' : type === 'footer' ? 'footerLogo' : 'banners';
     errors[key] = t('settings.invalidImageType');
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: t('settings.invalidImageType'),
-      life: 3000,
-    });
+    toast.add({ severity: 'error', summary: t('error'), detail: t('settings.invalidImageType'), life: 3000 });
     return false;
   }
   if (file.size > 2 * 1024 * 1024) {
-    const key = type === 'main' ? 'mainLogo' : type === 'footer' ? 'footerLogo' : 'banners';
     errors[key] = t('settings.imageTooLarge');
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: t('settings.imageTooLarge'),
-      life: 3000,
-    });
+    toast.add({ severity: 'error', summary: t('error'), detail: t('settings.imageTooLarge'), life: 3000 });
     return false;
   }
   return true;
 };
 
-const onImageUpload = (event, type) => {
-  const file = event.target.files?.[0] || event.dataTransfer?.files?.[0];
-  if (file && handleImageUpload(file, type)) {
-    if (type === 'main') {
-      mainLogoFile.value = file;
-      const reader = new FileReader();
-      reader.onload = (e) => (mainLogoPreview.value = e.target.result);
-      reader.readAsDataURL(file);
-      isDraggingMain.value = false;
-      errors.mainLogo = '';
-    } else if (type === 'footer') {
-      footerLogoFile.value = file;
-      const reader = new FileReader();
-      reader.onload = (e) => (footerLogoPreview.value = e.target.result);
-      reader.readAsDataURL(file);
-      isDraggingFooter.value = false;
-      errors.footerLogo = '';
-    }
+const onImageUpload = (e, type) => {
+  const file = e.target.files?.[0] || e.dataTransfer?.files?.[0];
+  if (!file) return;
+  const key = type === 'main' ? 'mainLogo' : 'footerLogo';
+  if (!checkImage(file, key)) return;
+
+  if (type === 'main') {
+    mainLogoFile.value = file;
+    const reader = new FileReader();
+    reader.onload = (ev) => (mainLogoPreview.value = ev.target.result);
+    reader.readAsDataURL(file);
+    isDraggingMain.value = false;
+    errors.mainLogo = '';
+  } else {
+    footerLogoFile.value = file;
+    const reader = new FileReader();
+    reader.onload = (ev) => (footerLogoPreview.value = ev.target.result);
+    reader.readAsDataURL(file);
+    isDraggingFooter.value = false;
+    errors.footerLogo = '';
   }
 };
 
@@ -605,7 +542,7 @@ const removeImage = (type) => {
     mainLogoFile.value = null;
     mainLogoPreview.value = null;
     errors.mainLogo = '';
-  } else if (type === 'footer') {
+  } else {
     footerLogoFile.value = null;
     footerLogoPreview.value = null;
     errors.footerLogo = '';
@@ -613,20 +550,17 @@ const removeImage = (type) => {
 };
 
 /* ------------------------------------------------------------------ */
-/* Banner Upload Handlers                                             */
+/* Banners upload / replace / delete                                  */
 /* ------------------------------------------------------------------ */
-const onBannerUpload = (event) => {
-  const files = event.target.files || event.dataTransfer?.files;
+const onBannerUpload = (e) => {
+  const files = e.target.files || e.dataTransfer?.files;
   if (!files?.length) return;
 
   Array.from(files).forEach((file) => {
-    if (handleImageUpload(file, 'banners')) {
+    if (checkImage(file, 'banners')) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        banners.value.push({
-          file,
-          preview: e.target.result,
-        });
+      reader.onload = (ev) => {
+        banners.value.push({ preview: ev.target.result, file });
       };
       reader.readAsDataURL(file);
     }
@@ -636,27 +570,25 @@ const onBannerUpload = (event) => {
   errors.banners = '';
 };
 
-const removeBanner = (index) => {
-  banners.value.splice(index, 1);
+const removeBanner = (idx) => {
+  banners.value.splice(idx, 1);
   validateForm();
 };
 
-const replaceBanner = (event, index) => {
-  const file = event.target.files?.[0];
-  if (file && handleImageUpload(file, 'banners')) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      banners.value[index] = {
-        file,
-        preview: e.target.result,
-      };
-    };
-    reader.readAsDataURL(file);
-  }
+const replaceBanner = (e, idx) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  if (!checkImage(file, 'banners')) return;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    banners.value[idx] = { ...banners.value[idx], preview: ev.target.result, file };
+  };
+  reader.readAsDataURL(file);
 };
 
 /* ------------------------------------------------------------------ */
-/* Submit handler                                                     */
+/* Submit                                                             */
 /* ------------------------------------------------------------------ */
 const onSubmit = async () => {
   if (isSubmitting.value) return;
@@ -664,12 +596,7 @@ const onSubmit = async () => {
 
   validateForm();
   if (!isFormValid.value) {
-    toast.add({
-      severity: 'error',
-      summary: t('validation.error'),
-      detail: t('validation.fillRequired'),
-      life: 3000,
-    });
+    toast.add({ severity: 'error', summary: t('validation.error'), detail: t('validation.fillRequired'), life: 3000 });
     isSubmitting.value = false;
     return;
   }
@@ -677,40 +604,25 @@ const onSubmit = async () => {
   const body = new FormData();
   if (mainLogoFile.value) body.append('main_logo', mainLogoFile.value);
   if (footerLogoFile.value) body.append('footer_logo', footerLogoFile.value);
-
-  banners.value.forEach((banner) => {
-    body.append('banners[]', banner.file);
-  });
+  banners.value.forEach((b) => b.file && body.append('banners[]', b.file));
 
   body.append('email', setting.value.email);
   body.append('phone', setting.value.phone);
   body.append('location', setting.value.location);
-  body.append('lat', setting.value.lat);
-  body.append('long', setting.value.long);
+  body.append('link', setting.value.map_link);
   body.append('privacy_policy_en', setting.value.privacy_policy_en);
   body.append('privacy_policy_ar', setting.value.privacy_policy_ar);
   body.append('terms_and_conditions_en', setting.value.terms_and_conditions_en);
   body.append('terms_and_conditions_ar', setting.value.terms_and_conditions_ar);
 
   try {
-    const res = await axios.post(`${apiUrl}/api/setting`, body, {
+    await axios.post(`${apiUrl}/api/setting`, body, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-
-    toast.add({
-      severity: 'success',
-      summary: t('success'),
-      detail: t('settings.updated'),
-      life: 3000,
-    });
+    toast.add({ severity: 'success', summary: t('success'), detail: t('settings.updated'), life: 3000 });
   } catch (e) {
     error.value = e.response?.data?.errors || {};
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: e.response?.data?.message || t('error.updateSettings'),
-      life: 3000,
-    });
+    toast.add({ severity: 'error', summary: t('error'), detail: e.response?.data?.message || t('error.updateSettings'), life: 3000 });
     console.error(e);
   } finally {
     isSubmitting.value = false;
@@ -725,13 +637,13 @@ onMounted(async () => {
     const { data } = await axios.get(`${apiUrl}/api/setting`);
     const payload = data.data;
 
+    // ---- Basic fields ----
     setting.value = {
       id: payload.id,
       email: payload.email ?? '',
       phone: payload.phone ?? '',
       location: payload.location ?? '',
-      lat: payload.lat ?? '',
-      long: payload.long ?? '',
+      map_link: payload.link ?? payload.map_link ?? '', // support both keys
       privacy_policy_en: payload.privacy_policy_en ?? '',
       privacy_policy_ar: payload.privacy_policy_ar ?? '',
       terms_and_conditions_en: payload.terms_and_conditions_en ?? '',
@@ -739,28 +651,24 @@ onMounted(async () => {
       media: payload.media ?? [],
     };
 
-    // Load logos
-    const mainLogo = setting.value.media.find((m) => m.name === 'main_logo');
-    if (mainLogo) mainLogoPreview.value = mainLogo.url;
+    // ---- Logos ----
+    const main = payload.media.find((m) => m.name === 'main_logo');
+    if (main) mainLogoPreview.value = main.url;
 
-    const footerLogo = setting.value.media.find((m) => m.name === 'footer_logo');
-    if (footerLogo) footerLogoPreview.value = footerLogo.url;
+    const footer = payload.media.find((m) => m.name === 'footer_logo');
+    if (footer) footerLogoPreview.value = footer.url;
 
-    // Load banners
-    const bannerMedias = setting.value.media.filter((m) => m.name === 'banner');
+    // ---- Banners (name can be "banner" or "banners") ----
+    const bannerMedias = payload.media.filter((m) => m.name === 'banner' || m.name === 'banners');
     banners.value = bannerMedias.map((m) => ({
-      file: null,
+      id: m.id,          // keep id for possible future delete-by-id
       preview: m.url,
+      file: null,        // no file when loaded from server
     }));
 
     validateForm();
   } catch (e) {
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: e.response?.data?.message || t('error.loadSettings'),
-      life: 3000,
-    });
+    toast.add({ severity: 'error', summary: t('error'), detail: e.response?.data?.message || t('error.loadSettings'), life: 3000 });
     console.error(e);
   }
 });
@@ -773,33 +681,15 @@ onMounted(async () => {
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
-.border-red-500 {
-  border-color: #ef4444;
-}
-
-.text-red-500 {
-  color: #ef4444;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.border-red-500 { border-color: #ef4444; }
+.text-red-500   { color: #ef4444; }
+button:disabled { opacity: .5; cursor: not-allowed; }
 
 /* Hover effects */
-.group:hover .group-hover\:scale-105 {
-  transform: scale(1.05);
-}
-.group:hover .group-hover\:bg-opacity-40 {
-  background-color: rgba(0, 0, 0, 0.4);
-}
-.group:hover .group-hover\:opacity-100 {
-  opacity: 1;
-}
+.group:hover .group-hover\:scale-105 { transform: scale(1.05); }
+.group:hover .group-hover\:bg-opacity-40 { background-color: rgba(0,0,0,.4); }
+.group:hover .group-hover\:opacity-100   { opacity: 1; }
 
-/* RTL support */
-[dir="rtl"] .flex {
-  direction: rtl;
-}
+/* RTL */
+[dir="rtl"] .flex { direction: rtl; }
 </style>

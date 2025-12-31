@@ -368,39 +368,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-/* PrimeVue TabView Custom Styles */
-:deep(.p-tabview .p-tabview-nav) {
-  background: transparent !important;
-  border: none !important;
-}
-
-:deep(.p-tabview .p-tabview-panels) {
-  background: transparent !important;
-  border: none !important;
-}
-
-:deep(.p-tabview .p-tabview-nav li .p-tabview-nav-link) {
-  background: transparent !important;
-  border: none !important;
-  color: white !important;
-  transition: background-color 0.3s ease !important;
-}
-
-:deep(.p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link) {
-  background: white !important;
-  color: #1f2937 !important;
-  border-bottom: 3px solid #43A167 !important;
-  border-radius: 0 !important;
-}
-
-:deep(.p-tabview .p-tabview-nav li .p-tabview-nav-link:hover) {
-  background: rgba(255, 255, 255, 0.1) !important;
-}
-
-:deep(.p-paginator) {
-  margin-top: 1rem;
-  justify-content: center;
-}
-</style>

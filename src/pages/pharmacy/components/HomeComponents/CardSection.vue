@@ -29,7 +29,7 @@ const WarehouseDetails =(id)=>{
 const fetchWarehouses = async () => {
   try {
     loading.value = true
-    const response = await axios.get('/api/pharmacy-home/get/warehouses')
+    const response = await axios.get('/api/pharmacy-home/get/warehouses?is_distinctive=1')
     if (response.data.success && response.data.data?.length > 0) {
       warehouses.value = response.data.data.map(warehouse => ({
         ...warehouse,
@@ -41,7 +41,7 @@ const fetchWarehouses = async () => {
         tags: warehouse.tags || [
           { name_ar: `متصل بأكثر من ${warehouse.connected_pharmacies} صيدلية`, name_en: `Connected to ${warehouse.connected_pharmacies} Pharmacies` }
         ],
-        address: warehouse.address || 'Unknown Address'
+        address: warehouse.city || 'Unknown Address'
       }))
     } else {
       warehouses.value = staticWarehouses

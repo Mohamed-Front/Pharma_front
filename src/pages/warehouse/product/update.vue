@@ -208,7 +208,7 @@ const submitForm = async () => {
   loading.value = true
   const fd = new FormData()
 
-  fd.append('_method', 'PUT') // Laravel trick
+  fd.append('_method', 'post') // Laravel trick
   fd.append('category_id', productData.value.category_id || '')
   fd.append('company_id', productData.value.company_id || '')
   fd.append('commercial_name', productData.value.commercial_name || '')
@@ -413,7 +413,7 @@ onMounted(() => {
         </div>
 
         <!-- Price Unit -->
-        <div class="space-y-2">
+       <div class="space-y-2">
           <label for="price_unit" class="block text-sm font-medium text-gray-700">
             {{ $t('product.price_unit') }} <span class="text-red-500">*</span>
           </label>
@@ -421,9 +421,8 @@ onMounted(() => {
             id="price_unit"
             v-model="productData.price_unit"
             :options="[
-              { label: 'USD', value: 1 },
-              { label: 'EUR', value: 2 },
-              { label: 'GBP', value: 3 }
+              { label: 'ل.س', value: 'ل.س' },
+              { label: '$', value: '$' },
             ]"
             optionLabel="label"
             optionValue="value"
@@ -438,14 +437,14 @@ onMounted(() => {
           <label for="expiration_from" class="block text-sm font-medium text-gray-700">
             {{ $t('product.expiration_from') }}
           </label>
-          <Calendar
-            id="expiration_from"
+          <InputText
+
+            type="date"
             v-model="productData.expiration_from"
-            dateFormat="yy-mm-dd"
-            :showIcon="true"
-            :manualInput="false"
+            mode="decimal"
             class="w-full"
           />
+
         </div>
 
         <!-- Expiration To -->
@@ -453,14 +452,14 @@ onMounted(() => {
           <label for="expiration_to" class="block text-sm font-medium text-gray-700">
             {{ $t('product.expiration_to') }}
           </label>
-          <Calendar
-            id="expiration_to"
+            <InputText
+
+            type="date"
             v-model="productData.expiration_to"
-            dateFormat="yy-mm-dd"
-            :showIcon="true"
-            :manualInput="false"
+            mode="decimal"
             class="w-full"
           />
+
         </div>
 
         <!-- Storage Notes -->

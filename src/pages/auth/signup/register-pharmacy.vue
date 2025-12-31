@@ -57,9 +57,9 @@
               class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-300"
               :class="{ 'border-red-500': errors.city }"
             >
-              <option value="" disabled selected>اختر المدينة</option>
-              <option v-for="city in cities" :key="city.Governorate_en" :value="city.Governorate_en" >
-                {{ city.Governorate_ar }} ({{ city.Governorate_en }})
+             <option value="" disabled selected>اختر المدينة</option>
+              <option v-for="city in cities" :key="city.name" :value="city.name" >
+                {{ city.name }}
               </option>
             </select>
             <small class="text-red-500 mt-1 block" v-if="errors.city">{{ errors.city }}</small>
@@ -193,21 +193,8 @@
             {{ $t('auth.location_information') }}
           </h4>
           <div class="relative">
-
             <label class="block text-sm font-medium text-gray-700 mb-1">{{ $t('auth.location') }}</label>
-            <GoogleMap
-             api-key="AIzaSyDZnJeq94aaneiA3QWUZdWYV9uKDEjxjas"
-              @click="handleMapClick"
-              style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden;"
-              :center="{ lat: form.lat ? parseFloat(form.lat) : 33.5158, lng: form.long ? parseFloat(form.long) : 36.2939 }"
-              :zoom="14"
-              class="shadow-md"
-            >
-              <Marker
-                v-if="form.lat && form.long"
-                :options="{ position: { lat: parseFloat(form.lat), lng: parseFloat(form.long) } }"
-              />
-            </GoogleMap>
+
 
           </div>
         </div>
@@ -217,68 +204,26 @@
           <h4 class="text-xl font-semibold text-gray-800 bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">
             {{ $t('auth.owner_information') }}
           </h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Practice Certificate -->
-            <div>
-              <label class="block text-sm font-medium text-center text-gray-700 mb-1">{{ $t('auth.practice_certificate') }}</label>
-              <label
-                @dragover.prevent="handleDragOver('practice_certificate')"
-                @dragleave="handleDragLeave('practice_certificate')"
-                @drop.prevent="onImageUpload($event, 'practice_certificate')"
-                :class="{ 'border-green-400 bg-green-50': isDragging.practice_certificate, 'border-gray-200': !isDragging.practice_certificate }"
-                class="w-full h-28 rounded-lg cursor-pointer transition-all duration-300 hover:border-green-400 border"
-              >
-                <input
-                  type="file"
-                  @change="onImageUpload($event, 'practice_certificate')"
-                  accept="image/*"
-                  class="hidden"
-                  id="practice_certificate"
-                />
-                <div v-if="form.practice_certificate_preview" class="p-4">
-                  <div class="relative group">
-                    <img
-                      :src="form.practice_certificate_preview"
-                      alt="Practice Certificate Preview"
-                      class="object-cover w-full h-32 rounded-lg shadow-md group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 rounded-lg group-hover:bg-opacity-40 transition-all duration-300">
-                      <div class="space-x-3 transform translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-                        <button
-                          type="button"
-                          @click.stop="removeImage('practice_certificate')"
-                          class="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
-                        >
-                          <i class="text-sm pi pi-trash"></i>
-                        </button>
-                        <button
-                          type="button"
-                          @click.stop="editImage('practice_certificate')"
-                          class="p-2 bg-white text-gray-700 rounded-full hover:bg-gray-100 transition"
-                        >
-                          <i class="text-sm pi pi-pencil"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <p class="mt-2 text-sm text-center text-gray-500">{{ $t('auth.click_or_drag_to_change_photo') }}</p>
-                </div>
-                <div v-else class="flex flex-col items-center justify-center h-full p-4">
-                  <div class="p-3 mb-2 bg-green-100 rounded-full">
-                    <i class="text-xl text-green-500 pi pi-image"></i>
-                  </div>
-                  <p class="mb-1 text-sm text-center text-gray-600">
-                    <span class="font-medium text-green-500">{{ $t('auth.click_to_upload') }}</span> {{ $t('auth.or_drag_and_drop') }}
-                  </p>
-                  <p class="text-xs text-gray-400">SVG, PNG, JPG or GIF (max. 1MB)</p>
-                </div>
-              </label>
-              <small class="text-red-500 mt-1 block" v-if="errors.practice_certificate">{{ errors.practice_certificate }}</small>
-            </div>
+           <div  class="relative">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ $t('auth.location') }}</label>
 
+            <!-- Iframe that shows the selected location -->
+            <div v-if='iframeSrc' class="w-full h-80 rounded-lg overflow-hidden shadow-md">
+              <iframe
+                :src="iframeSrc"
+                width="100%"
+                height="100%"
+                style="border:0;"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+
+
+          </div>
             <!-- Pharmacy Logo -->
             <div>
-              <label class="block text-sm text-center font-medium text-gray-700 mb-1">{{ $t('auth.pharmacy_logo') }}</label>
+              <label class="block  my-2 text-sm text-center font-medium text-gray-700 mb-1">{{ $t('auth.pharmacy_logo') }}</label>
               <label
                 @dragover.prevent="handleDragOver('pharmacy_logo')"
                 @dragleave="handleDragLeave('pharmacy_logo')"
@@ -379,7 +324,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive,onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { GoogleMap, Marker } from 'vue3-google-map'
 import axios from 'axios'
@@ -391,22 +336,15 @@ const toast = useToast()
 const router = useRouter()
 
 // Cities data
-const cities = ref([
-  { Governorate_ar: 'دمشق', Governorate_en: 'Damascus', Latitude: 33.5158, Longitude: 36.2939, Status: 'active' },
-  { Governorate_ar: 'دمشق ريف', Governorate_en: 'Rif Dimashq', Latitude: 33.5719, Longitude: 36.402, Status: 'active' },
-  { Governorate_ar: 'حلب', Governorate_en: 'Aleppo', Latitude: 36.2019, Longitude: 37.1612, Status: 'not active' },
-  { Governorate_ar: 'حمص', Governorate_en: 'Homs', Latitude: 34.7308, Longitude: 36.709, Status: 'not active' },
-  { Governorate_ar: 'حماة', Governorate_en: 'Hama', Latitude: 35.1318, Longitude: 36.7578, Status: 'not active' },
-  { Governorate_ar: 'إدلب', Governorate_en: 'Idlib', Latitude: 35.9306, Longitude: 36.6339, Status: 'not active' },
-  { Governorate_ar: 'اللاذقية', Governorate_en: 'Latakia', Latitude: 35.5167, Longitude: 35.7833, Status: 'not active' },
-  { Governorate_ar: 'طرطوس', Governorate_en: 'Tartus', Latitude: 34.889, Longitude: 35.8866, Status: 'not active' },
-  { Governorate_ar: 'الرقة', Governorate_en: 'Raqqa', Latitude: 35.95, Longitude: 39.0167, Status: 'not active' },
-  { Governorate_ar: 'دير الزور', Governorate_en: 'Deir ez-Zor', Latitude: 35.3333, Longitude: 40.15, Status: 'not active' },
-  { Governorate_ar: 'الحسكة', Governorate_en: 'Al-Hasakah', Latitude: 36.502, Longitude: 40.747, Status: 'not active' },
-  { Governorate_ar: 'درعا', Governorate_en: 'Daraa', Latitude: 32.6189, Longitude: 36.1029, Status: 'not active' },
-  { Governorate_ar: 'السويداء', Governorate_en: 'As-Suwayda', Latitude: 32.708, Longitude: 36.569, Status: 'not active' },
-  { Governorate_ar: 'القنيطرة', Governorate_en: 'Quneitra', Latitude: 33.125, Longitude: 35.823, Status: 'not active' }
-])
+const cities = ref([])
+ const Getcities=()=>{
+  axios.get(`api/city?type=pharmacy&status=1`).then((res)=>{
+    cities.value=res.data.data
+  })
+ }
+ onMounted(() => {
+  Getcities()
+})
 
 // Form data
 const form = reactive({
@@ -536,7 +474,13 @@ const handleDragOver = (type: 'practice_certificate' | 'pharmacy_logo') => {
 const handleDragLeave = (type: 'practice_certificate' | 'pharmacy_logo') => {
   isDragging.value[type] = false
 }
-
+const iframeSrc = computed(() => {
+  if (form.location_link) {
+    // Google Maps embed URL from the simple q=lat,lng link
+     const embed = `https://www.google.com/maps?q=${form.lat},${form.long}&hl=es;z=14&output=embed`
+    return embed
+  }
+})
 const onImageUpload = (event: Event | DragEvent, type: 'practice_certificate' | 'pharmacy_logo') => {
   const file = (event as DragEvent).dataTransfer?.files?.[0] || (event.target as HTMLInputElement).files?.[0]
   if (file) {
@@ -594,11 +538,11 @@ const handleMapClick = (event: any) => {
 
 // Update map location when city is selected
 const updateMapLocation = () => {
-  const selectedCity = cities.value.find(city => city.Governorate_en === form.city)
+  const selectedCity = cities.value.find(city => city.name === form.city)
   if (selectedCity) {
-    form.lat = selectedCity.Latitude.toString()
-    form.long = selectedCity.Longitude.toString()
-    form.location_link = `https://www.google.com/maps?q=${selectedCity.Latitude},${selectedCity.Longitude}`
+    form.lat = selectedCity.lat.toString()
+    form.long = selectedCity.long.toString()
+    form.location_link = `https://www.google.com/maps?q=${selectedCity.lat},${selectedCity.long}`
   }
 }
 

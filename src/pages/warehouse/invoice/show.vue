@@ -95,15 +95,15 @@ const printInvoice = () => {
   printWindow.document.write(`
     <html>
       <head>
-        <title>${t('invoice.printTitle')} #${invoice.value?.number || ''}</title>
+        <title> #${invoice.value?.number || ''}</title>
         <style>
           body { font-family: Arial, sans-serif; padding: 20px; }
-          .invoice-container { max-width: 800px; margin: 0 auto; }
-          .invoice-header { text-align: center; margin-bottom: 20px; }
+          .invoice-container { max-width: 800px; margin: 0 auto;text-align: right; }
+          .invoice-header {  margin-bottom: 20px; }
           .invoice-details { margin-bottom: 20px; }
           .invoice-details p { margin: 5px 0; }
           .items-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          .items-table th, .items-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          .items-table th, .items-table td { border: 1px solid #ddd; padding: 8px;  }
           .items-table th { background-color: #f4f4f4; }
           @media print {
             .no-print { display: none; }
@@ -113,7 +113,7 @@ const printInvoice = () => {
       <body>
         <div class="invoice-container">
           <div class="invoice-header">
-            <h1>${t('invoice.printTitle')} #${invoice.value?.number || ''}</h1>
+            <h1> ${invoice.value?.number || ''} ${t('invoice.printTitle')}</h1>
           </div>
           <div class="invoice-details">
             <p><strong>${t('invoice.pharmacy')}:</strong> ${invoice.value?.pharmacy?.name || '-'}</p>
@@ -172,21 +172,18 @@ onMounted(() => {
               :label="t('invoice.print')"
               icon="pi pi-print"
               class="px-6 py-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors duration-200"
-              :disabled="loading || !invoice"
               @click="printInvoice"
             />
             <Button
               :label="t('invoice.viewDetails')"
               icon="pi pi-file"
               class="px-6 py-2 mx-1  rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200"
-              :disabled="loading || !invoice"
               @click="showInvoiceDialog = true"
             />
             <Button
               :label="t('invoice.pay')"
               icon="pi pi-money-bill"
               class="px-6 py-2 rounded-full bg-green-600 text-white hover:bg-green-700 transition-colors duration-200"
-              :disabled="loading || !invoice || invoice.status_description?.toLowerCase() !== 'unpaid'"
               @click="showPaymentDialog = true"
             />
           </div>

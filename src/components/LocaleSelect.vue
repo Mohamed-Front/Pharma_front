@@ -63,12 +63,15 @@ const changeLocale = (newLang) => {
 
 const getFlagSrc = (langCode) => {
   const flags = {
+    // علم المملكة المتحدة (بريطانيا العظمى) للغة الإنجليزية
     en: 'https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/gb.svg',
-    ar: 'https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/eg.svg'
+    // **تم التغيير هنا: من علم مصر (eg) إلى علم سوريا (sy) للغة العربية**
+    ar: 'https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/sy.svg'
   };
   return flags[langCode];
 };
 </script>
+
 
 <style scoped>
 .language-dropdown-custom :deep(.p-dropdown) {

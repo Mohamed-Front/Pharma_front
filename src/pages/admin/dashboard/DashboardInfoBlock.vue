@@ -99,41 +99,7 @@
       </div>
     </div>
 
-    <!-- Recent Orders Table -->
-    <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl" v-if="dashboardData">
-      <div class="p-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('dashboard.recent_orders') }}</h2>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-gray-200 sticky top-0">
-            <tr>
-              <th class="px-6 py-3  text-xs font-medium text-gray-600 uppercase tracking-wider">{{ $t('dashboard.table.order_id') }}</th>
-              <th class="px-6 py-3  text-xs font-medium text-gray-600 uppercase tracking-wider">{{ $t('dashboard.table.customer') }}</th>
-              <th class="px-6 py-3  text-xs font-medium text-gray-600 uppercase tracking-wider">{{ $t('dashboard.table.date') }}</th>
-              <th class="px-6 py-3  text-xs font-medium text-gray-600 uppercase tracking-wider">{{ $t('dashboard.table.amount') }}</th>
-              <th class="px-6 py-3  text-xs font-medium text-gray-600 uppercase tracking-wider">{{ $t('dashboard.table.status') }}</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200 custom-scrollbar overflow-auto h-[300px] block">
-            <tr v-for="order in recentOrders" :key="order.id" class="hover:bg-gray-50 transition duration-200 display-table w-full table-fixed">
-              <td class="px-6  py-4 whitespace-nowrap text-sm font-medium text-gray-800">#{{ order.id }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ order.customer }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ order.date }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ formatCurrency(order.amount) }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span :class="`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(order.status)}`">
-                  {{ order.status }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="px-6 py-3 bg-white text-right">
-        <Button class="p-button-sm p-button-text" :label="$t('dashboard.view_all')" icon="pi pi-arrow-right" />
-      </div>
-    </div>
+
   </div>
 </template>
 
@@ -280,7 +246,7 @@ const fetchDashboardData = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const response = await axios.get('https://backend.pharmabank.sy/api/dashboard/admin/data');
+    const response = await axios.get('https://pharma-service-838894765790.us-central1.run.app/api/dashboard/admin/data');
     if (response.data.success) {
       dashboardData.value = response.data.data;
     } else {

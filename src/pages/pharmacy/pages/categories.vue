@@ -27,11 +27,13 @@ const cartLoading = ref({}); // Track loading state per product
 const staticCategories = [];
 const staticProducts = [];
 
+// Get app language
+const appLang = localStorage.getItem('appLang') || 'ar';
+
 // Computed property for selected category name
 const selectedCategoryName = computed(() => {
   if (selectedCategory.value === 'all') return '';
   const category = categories.value.find(cat => cat.id === selectedCategory.value);
-  const appLang = localStorage.getItem('appLang') || 'ar';
   return category ? (appLang === 'en' ? category.name_en : category.name_ar) : '';
 });
 
@@ -39,7 +41,9 @@ const selectedCategoryName = computed(() => {
 const fetchCategories = async () => {
   loading.value = true;
   try {
-    const response = await axios.get('/api/pharmacy-home/get/categories');
+    const searchParam = searchQuery.value ? `search=${encodeURIComponent(searchQuery.value)}` : '';
+    const url = `/api/pharmacy-home/get/categories${searchParam ? '?' + searchParam : ''}`;
+    const response = await axios.get(url);
     if (response.data.success && response.data.data?.length > 0) {
       categories.value = [{ id: 'all', name_ar: 'الكل', name_en: 'All' }, ...response.data.data];
     } else {
@@ -61,6 +65,11 @@ const fetchCategories = async () => {
     });
     console.error('Error fetching categories:', error);
   } finally {
+    // Check if selected category still exists
+    if (selectedCategory.value !== 'all' && !categories.value.some(cat => cat.id === selectedCategory.value)) {
+      selectedCategory.value = 'all';
+      await fetchProducts(1);
+    }
     loading.value = false;
   }
 };
@@ -70,8 +79,7 @@ const fetchProducts = async (page = 1) => {
   loading.value = true;
   try {
     const categoryParam = selectedCategory.value === 'all' ? '' : `category_id=${selectedCategory.value}&`;
-    const searchParam = searchQuery.value ? `search=${encodeURIComponent(searchQuery.value)}&` : '';
-    const response = await axios.get(`/api/pharmacy-home/get/products?${categoryParam}${searchParam}page=${page}`);
+    const response = await axios.get(`/api/pharmacy-home/get/products?${categoryParam}page=${page}`);
     if (response.data.success && response.data.data?.length > 0) {
       products.value = response.data.data.map(product => ({
         ...product,
@@ -144,15 +152,6 @@ const addToCart = async (productId) => {
   }
 };
 
-// Filter products based on search query
-const filteredProducts = computed(() => {
-  if (!searchQuery.value) return products.value;
-  return products.value.filter(product =>
-    product.commercial_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    product.scientific_structure.some(tag => tag.toLowerCase().includes(searchQuery.value.toLowerCase()))
-  );
-});
-
 // Map pharmaceutical_form to PrimeVue icons
 const getProductIcon = (form) => {
   const formMap = {
@@ -184,8 +183,7 @@ const changePage = (page) => {
 // Watch for search query changes
 import { watch } from 'vue';
 watch(searchQuery, () => {
-  currentPage.value = 1;
-  fetchProducts(1);
+  fetchCategories();
 });
 
 // Initialize data
@@ -203,7 +201,7 @@ onMounted(() => {
         <div class="relative w-full max-w-lg">
           <InputText
             v-model="searchQuery"
-          :placeholder="t('navbar.search')"
+            :placeholder="t('navbar.search')"
             class="w-full p-3 pr-12 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
         </div>
@@ -223,11 +221,11 @@ onMounted(() => {
       </div>
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         <div
-          v-for="product in filteredProducts"
+          v-for="product in products"
           :key="product.id"
-          class="bg-white rounded-xl shadow-md p-4 relative overflow-hidden flex flex-col"
+          class="bg-white cursor-pointer rounded-xl shadow-md p-4 relative overflow-hidden flex flex-col"
         >
-          <div class="flex justify-between">
+          <div class="flex  justify-between">
             <div>
               <div class="flex justify-between items-start mb-2">
                 <span class="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full">أدوية فقط</span>
@@ -279,7 +277,7 @@ onMounted(() => {
               </span>
             </div>
             <span class="text-lg md:text-xl font-bold text-green-600">
-              {{ product.price +'$' }}
+              {{ parseInt(product.price) +product.price_unit }}
             </span>
           </div>
           <Button

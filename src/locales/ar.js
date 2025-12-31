@@ -4,8 +4,10 @@ export default {
   users: "المستخدمين",
   companies:"الشركــات",
   Products:"المنتجات",
+  city:"المــــدن",
   categories:"التصنيــــفات",
   warehouse_request:"  المستودعات",
+  passwordRequests:"طلب تغيير كلمة المرور",
   createNewAccount:"انشاء حساب جديد",
   Settings: "الاعدادات",
   admin_report:"التقارير",
@@ -18,11 +20,13 @@ export default {
         "only": "عرض خاص",
         "get": "احصل على",
         "minLimit": "الحد الأدنى للطلب",
-        "maxLimit": "الحد الأقصى للطلب"
+        "maxLimit": "الحد الأقصى للإستفادة من العرض"
       },
   warehouse_dashboard:"لوحة القيادة",
     "cancel": "إلغاء",
     "navigation": {
+      password_request:"طلب تغيير كلمة المرور",
+      city:"المــــدن",
       notifications:"الاشعارات",
       profile:"الملف الشخصي ",
       reports:"تقارير  المستودع ",
@@ -51,7 +55,7 @@ export default {
     "settings": "الإعدادات",
     "addresses": "العناوين"
   },
-   "featured_warehouses": "المستودعات ",
+   "featured_warehouses": " المستودعات المميزة",
   "warehouse_expertise": "لدينا خبرة واسعة في مجال",
   "warehouses": "المستودعات",
   "and_distribution": "وتوزيع",
@@ -66,11 +70,30 @@ export default {
     "all_products": "جميع المنتجات"
   },
   "notifications": {
+    mark_all_read:"جعل كل الرسائل مقرؤة",
     "admin_messages": "رسائل الإدارة",
     "pharmacy_notes": "ملاحظات الصيدليات",
     "warehouse_notes": "ملاحظات المستودعات",
     "warehouse_shipments":"ملاحظات المستودع ",
 
+  },
+"password_reset": {
+    "title": "نسيت كلمة المرور؟",
+    "subtitle": "أدخل رقم هاتفك وسوف نرسل لك رابط إعادة تعيين كلمة المرور",
+    "account_type": "نوع الحساب",
+    "send_request": "إرسال طلب إعادة التعيين",
+    "request_sent": "تم إرسال الطلب بنجاح!",
+    "request_sent_description": "تم إرسال رابط إعادة تعيين كلمة المرور إلى رقم الهاتف:",
+    "request_sent_success": "تم إرسال رابط إعادة التعيين بنجاح",
+    "request_failed": "فشل إرسال الطلب، تأكد من رقم الهاتف",
+    "back_to_login": "العودة إلى تسجيل الدخول",
+    "phone_hint": "يجب أن يكون رقم سوري (مثال: 0933123456)",
+    "invalid_syrian_phone": "رقم الهاتف يجب أن يكون سوريًا ويبدأ بـ 09"
+  },
+  "common": {
+    "pharmacy": "صيدلية",
+    "warehouse": "مستودع",
+    "sending": "جاري الإرسال..."
   },
   "since": "منذ",
   "hours_ago": "ساعة/ساعات",
@@ -84,6 +107,7 @@ export default {
   "no_title": "لا يوجد عنوان",
   "no_body": "لا يوجد محتوى",
   "notification": {
+        mark_all_read:"جعل كل الرسائل مقرؤة",
     "send_notification": "إرسال إشعار",
     "type": "النوع",
     "select_type": "اختر النوع",
@@ -158,7 +182,36 @@ export default {
     "actions": "الإجراءات",
     "refresh": "تحديث",
     "cancel": "إلغاء",
-    "save": "حفظ"
+    "save": "حفظ",
+     "pharmacy": "صيدلية",
+    "warehouse": "مستودع",
+    "sending": "جاري الإرسال..."
+
+  },
+  "passwordRequest": {
+    "managementTitle": "إدارة طلبات إعادة تعيين كلمة المرور",
+    "search": "بحث...",
+    "export": "تصدير",
+    "new": "طلب جديد",
+    "number": "رقم الطلب",
+    "requestableName": "اسم المستخدم/الجهة",
+    "type": "النوع",
+    "phone": "الهاتف",
+    "copyLink": "نسخ الرابط",
+    "linkCopied": "تم نسخ الرابط إلى الحافظة",
+    "copyLinkError": "فشل نسخ الرابط",
+    "status": "الحالة",
+    "actions": "الإجراءات",
+    "noData": "لم يتم العثور على طلبات إعادة تعيين كلمة المرور.",
+    "loadError": "حدث خطأ أثناء تحميل الطلبات. يرجى المحاولة مرة أخرى.",
+    "deleteSuccess": "تم حذف الطلب بنجاح.",
+    "deleteError": "فشل حذف الطلب.",
+    "deleteConfirmTitle": "تأكيد الحذف",
+    "deleteConfirmMessage": "هل أنت متأكد أنك تريد حذف طلب إعادة تعيين كلمة المرور هذا؟",
+    "showing": "عرض",
+    "to": "إلى",
+    "of": "من أصل",
+    "entries": "سجلات"
   },
   "permissions": {
     "management": "إدارة الصلاحيات",
@@ -543,6 +596,7 @@ export default {
     "paymentAmount": "مبلغ الدفع",
     "cancel": "إلغاء",
     "pay": "دفع",
+    "printTitle":"رقم الفاتورة",
     "paymentSuccess": "تمت معالجة الدفع بنجاح",
     "paymentError": "فشل في معالجة الدفع",
     "invalidAmount": "يرجى إدخال مبلغ دفع صحيح",
@@ -576,6 +630,7 @@ export default {
   "error": "خطأ",
   "success": "نجاح",
  "order": {
+  "itemComment":"تعليق للعنصر",
    "detailsTitle": "تفاصيل الطلب",
     "back": "العودة إلى الطلبات",
     "viewInvoice": "عرض الفاتورة",
@@ -669,11 +724,14 @@ export default {
       "delivered":"توصيل",
      "cancel":"الغاء",
      "accept":"قبول",
+     "reject":"رفض",
   },
   "error": "خطأ",
   "success": "نجاح",
   "warning": "تحذير",
   "orders": {
+    "sendAllComments":"ارسال جميع التعليقات",
+      "itemComment":"تعليق للعنصر",
     "title": "طلباتي",
     "fetchError": "فشل في تحميل قائمة الطلبات.",
     "detailsError": "فشل في تحميل تفاصيل الطلب.",
@@ -809,12 +867,60 @@ export default {
     "eligibleGiftsTitle": "الهدايا المجانية المؤهلة",
     "complimentary": "مجاني/إكرامية",
     "free": "مجاني",
-    "eligibleGifts": "ستحصل على {count} هدية!",
-    "needMore": "أضف {needed} إضافية لتحصل على الهدية",
+    "eligibleGifts": "ستحصل على  هدية!",
+    "needMore": "أضف  إضافية لتحصل على الهدية",
     "validUntil": "صالح حتى",
     "unit": "وحدة",
     "box": "علبة",
     "pack": "عبوة"
+  },
+
+  "cities": "المدن",
+  "city": {
+    "name": "الاسم",
+    "lat": "خط العرض (Latitude)",
+    "long": "خط الطول (Longitude)",
+    "type": "النوع",
+    "pharmacy": "صيدلية",
+    "warehouse": "مستودع",
+    "selectType": "اختر النوع",
+    "new": "مدينة جديدة",
+    "export": "تصدير CSV",
+    "createTitle": "إنشاء مدينة",
+    "editTitle": "تعديل المدينة",
+    "createSuccess": "تم إنشاء المدينة بنجاح",
+    "updateSuccess": "تم تحديث المدينة بنجاح",
+    "deleteSuccess": "تم حذف المدينة بنجاح",
+    "createError": "فشل في إنشاء المدينة",
+    "updateError": "فشل في تحديث المدينة",
+    "deleteError": "فشل في حذف المدينة",
+    "loadError": "فشل في تحميل المدن",
+    "noData": "لا توجد مدن",
+    "deleteConfirmTitle": "تأكيد الحذف",
+    "deleteConfirmMessage": "هل أنت متأكد من حذف هذه المدينة؟"
+  },
+  "showing": "عرض",
+  "to": "إلى",
+  "of": "من",
+  "entries": "سجل",
+  "search": "ابحث...",
+  "actions": "الإجراءات",
+  "edit": "تعديل",
+  "delete": "حذف",
+  "status_description":"حالة",
+  "save": "حفظ",
+  "cancel": "إلغاء",
+  "yes": "نعم",
+  "no": "لا",
+  "success": "نجاح",
+  "error": "خطأ",
+  "validation": {
+    "required": "هذا الحقل مطلوب",
+    "latRange": "يجب أن يكون خط العرض بين -90 و 90",
+    "longRange": "يجب أن يكون خط الطول بين -180 و 180",
+    "number": "يجب أن يكون رقمًا صالحًا",
+    "error": "خطأ في التحقق",
+    "fixErrors": "يرجى تصحيح الأخطاء أدناه"
   },
 "contact": {
     "location": "موقع الشركة",
@@ -844,7 +950,7 @@ export default {
       "messageTooShort": "يجب أن تكون الرسالة 10 أحرف على الأقل"
     }
   },
-  "currency": "دولار",
+  "currency": "ل.س",
   "warning": "تحذير",
   "error": "خطأ",
   "success": "نجاح",
@@ -1030,7 +1136,41 @@ export default {
     address_not_found: "لم يتم العثور على العنوان",
     address_fetch_failed: "فشل في جلب العنوان",
     warehouse_logo_required: "شعار المستودع مطلوب",
-    request_submitted_successfully: "تم تقديم الطلب بنجاح"
+    request_submitted_successfully: "تم تقديم الطلب بنجاح",
+    "welcome_to_pharma": "مرحباً بك في منصة فارما",
+    "welcome_description": "إدارة صيدليتك أو مستودعك بسهولة وكفاءة عالية.",
+
+    "register_as": "إنشاء حساب جديد",
+    "select_account_type": "يرجى اختيار نوع الحساب الذي ترغب في تسجيله",
+
+    "pharmacy": "صيدلية",
+    "pharmacy_description": "تسجيل كصيدلية تجزئة",
+
+    "storehouse": "مستودع / موزع",
+    "storehouse_description": "تسجيل كمستودع أو موزع أدوية",
+
+    "continue": "متابعة",
+    "already_have_account": "لديك حساب بالفعل؟",
+    "sign_in": "تسجيل الدخول",
+
+    "change_password": "تغيير كلمة المرور",
+    "enter_new_password": "أدخل كلمة مرور جديدة قوية لحماية حسابك",
+    "new_password": "كلمة المرور الجديدة",
+    "confirm_new_password": "تأكيد كلمة المرور الجديدة",
+    "show": "إظهار",
+    "hide": "إخفاء",
+
+    "password_too_short": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+    "passwords_do_not_match": "كلمتا المرور غير متطابقتين",
+
+    "password_changed_successfully": "تم تغيير كلمة المرور بنجاح!",
+    "sign_in_now": "تسجيل الدخول الآن",
+    "back_to_login": "العودة إلى تسجيل الدخول",
+
+    "invalid_or_missing_token": "رابط إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية.",
+    "change_password_failed": "فشل تغيير كلمة المرور. يرجى طلب رابط جديد."
+
+
   },
   inquiry: {
     inquiry:"استعلام",
@@ -1047,6 +1187,7 @@ export default {
     submit: "التحقق من الحالة"
   },
   "settings": {
+    mapLink:"لينك الخريطة",
     "updateSettings": "تحديث الإعدادات",
     "email": "البريد الإلكتروني",
     "phone": "رقم الهاتف",
@@ -1126,6 +1267,11 @@ export default {
   "no": "لا",
   "yes": "نعم",
   warehouseRequest: {
+    "rejectConfirmTitle": "تأكيد رفض طلب المستودع",
+    "rejectConfirmMessage": "سيتم رفض طلب إنشاء المستودع نهائيًا، وسيتم إشعار مقدم الطلب برسالة الرفض.",
+    "rejectedMessage": "رسالة الرفض",
+    "rejectedMessagePlaceholder": "يرجى توضيح سبب رفض الطلب بشكل واضح ومهذب...\n(سيتم إرسال هذه الرسالة تلقائيًا إلى صاحب الطلب)",
+    "rejectedMessageRequired": "يجب كتابة سبب الرفض لمتابعة العملية.",
     title: "طلبات المستودعات",
     search: "البحث في الطلبات...",
     export: "تصدير",
@@ -1283,6 +1429,8 @@ export default {
     entries: 'المدخلات',
   },
    "product": {
+          "details":"تفاصيل المنتج",
+
     "create_new_product": "إنشاء منتج جديد",
     "update_product": "تحديث المنتج",
     "create_product": "إنشاء المنتج",
@@ -1524,8 +1672,8 @@ export default {
     "gift_quantity": "كمية الهدية",
     "min_limit": "الحد الأدنى",
     "max_limit": "الحد الأقصى",
-    "min_limit_tooltip": "أقل عدد من الوحدات يجب على العميل شراؤه لتفعيل العرض",
-    "max_limit_tooltip": "أكبر عدد من الوحدات يمكن للعميل الاستفادة منه في هذا العرض",
+    "min_limit_tooltip": " ادني عدد من المرات للاستفاده بالعرض"    ,
+    "max_limit_tooltip": " اقصي عدد من المرات للاستفاده بالعرض",
     "start_date": "تاريخ البداية",
     "end_date": "تاريخ النهاية",
     "description": "الوصف",
@@ -1712,6 +1860,34 @@ export default {
       "total_spent": "إجمالي الإنفاق"
     }
   },
+  "distinctiveWarehouses": {
+    "addPeriod":"اضافة فترة تمييز",
+    "title": "المستودعات المميزة",
+    "tabDistinctive": "المستودعات المميزة",
+    "distinctive": "مميز",
+    "fromDate": "تاريخ البداية",
+    "toDate": "تاريخ النهاية",
+    "makeDistinctive": "جعل مميز",
+    "updatePeriod": "تعديل الفترة",
+    "removeDistinctive": "إزالة التمييز",
+    "addConfirmTitle": "إضافة فترة تمييز",
+    "updateConfirmTitle": "تعديل فترة التمييز",
+    "removeConfirmTitle": "تأكيد إزالة التمييز",
+    "addConfirmMessage": "هل تريد إضافة فترة تمييز لهذا المستودع؟",
+    "updateConfirmMessage": "هل تريد تعديل فترة التمييز؟",
+    "removeConfirmMessage": "هل تريد إزالة التمييز عن هذا المستودع؟",
+    "addSuccess": "تم إضافة فترة التمييز بنجاح",
+    "updateSuccess": "تم تعديل فترة التمييز بنجاح",
+    "removeSuccess": "تم إزالة التمييز بنجاح",
+    "addError": "فشل إضافة فترة التمييز",
+    "updateError": "فشل تعديل فترة التمييز",
+    "removeError": "فشل إزالة التمييز",
+    "datesRequired": "يرجى إدخال تاريخ البداية وتاريخ النهاية",
+    "noData": "لا توجد مستودعات مميزة",
+    "loadError": "حدث خطأ أثناء تحميل المستودعات المميزة"
+  },
+  "yes": "نعم",
+  "no": "لا",
   menu: {
     dashboard: "لوحة التحكم",
     users: "المستخدمين",
@@ -1739,6 +1915,7 @@ export default {
       prescriptions: "الوصفات الطبية",
       inventory: "المخزون"
     },
+
     admin: {
       dashboard: "لوحة تحكم المدير",
       warehouse_requests: "طلبات المستودعات",
@@ -1750,7 +1927,8 @@ export default {
     expand: "توسيع",
     collapse: "طي",
     navigation: {
-
+      password_request: "طلبات تغيير كلمة المرور",
+      city:"المــــدن",
       notifications:"الاشعارات",
       reports:"تقارير  المستودع ",
       pharmacy_request:"طلبات الصيدليات",
@@ -1770,7 +1948,7 @@ export default {
       addresses: "العناوين",
       attributes: "الخصائص"
     },
-
+   view:"تفاصيل",
 
   }
 };

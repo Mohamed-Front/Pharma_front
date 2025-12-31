@@ -58,7 +58,7 @@ const banners = ref([])
 // Fetch banners from settings → `data.media` where name === 'banners'
 const fetchBanners = async () => {
   try {
-    const { data } = await axios.get(`/api/setting`)
+    const { data } = await axios.get(`/api/setting/not/auth`)
 
     if (data.success && Array.isArray(data.data?.media)) {
       // Filter media items where name === 'banners'

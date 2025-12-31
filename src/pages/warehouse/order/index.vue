@@ -41,14 +41,84 @@ const to = ref(0)
 // Status severity mapping for Tag component
 const getStatusSeverity = (status) => {
   switch (status.toLowerCase()) {
+    case 'نشط':
     case 'pending':
       return 'warning'
-    case 'completed':
-      return 'success'
-    case 'cancelled':
+    case 'قيد الانتظار':
+    case 'waiting':
+      return 'info'
+    case 'مرتجع':
+    case 'returned':
       return 'danger'
+    case 'مُنجز':
+    case 'completed':
+    case 'مُسلم':
+    case 'delivered':
+      return 'success'
     default:
       return 'info'
+  }
+}
+
+// Function to determine if an action should be enabled based on status
+const canPerformAction = (order, action) => {
+  const status = order.status
+  const statusDescription = order.status_description?.toLowerCase() || ''
+
+  switch (action) {
+    case 'view':
+      // Always allow viewing
+      return true
+
+    case 'delete':
+      // Allow deletion only for pending/active orders (status 1)
+      return status === 1
+
+    case 'accept':
+      // Allow accepting only for pending/active orders (status 1)
+      return status === 1
+
+    case 'cancel':
+      // Allow canceling for pending/active (1) or waiting (2) orders
+      return status === 1 || status === 2
+
+    case 'deliver':
+      // Allow delivering for waiting orders (status 2)
+      return status === 2
+
+    case 'return':
+      // Allow returning for delivered orders (status 3)
+      return status === 3
+
+    case 'edit':
+      // Allow editing only for pending/active orders (status 1)
+      return status === 1
+
+    default:
+      return false
+  }
+}
+
+// Function to get action label based on status
+const getActionLabel = (order, action) => {
+  const status = order.status
+  const statusDescription = order.status_description?.toLowerCase() || ''
+
+  switch (action) {
+    case 'accept':
+      return status === 1 ? t('order.accept') : t('order.confirm')
+
+    case 'cancel':
+      return status === 1 ? t('order.cancel') : t('order.reject')
+
+    case 'deliver':
+      return t('order.deliver')
+
+    case 'return':
+      return t('order.return')
+
+    default:
+      return t(`order.${action}`)
   }
 }
 
@@ -83,14 +153,39 @@ const deleteOrder = () => {
     })
 }
 
-const changeStatus = (id, status) => {
+const changeStatus = (id, status, currentStatus) => {
+  let successMessage = ''
+  let errorMessage = ''
+
+  switch (status) {
+    case 2: // Accept to waiting
+      successMessage = t('order.acceptSuccess')
+      errorMessage = t('order.acceptError')
+      break
+    case 5: // Cancel
+      successMessage = t('order.cancelSuccess')
+      errorMessage = t('order.cancelError')
+      break
+    case 3: // Deliver
+      successMessage = t('order.deliverSuccess')
+      errorMessage = t('order.deliverError')
+      break
+    case 4: // Return
+      successMessage = t('order.returnSuccess')
+      errorMessage = t('order.returnError')
+      break
+    default:
+      successMessage = t('order.statusChanged')
+      errorMessage = t('order.statusChangeError')
+  }
+
   axios.post(`/api/order/change-status/${id}?status=${status}`)
     .then(() => {
       fetchData()
       toast.add({
         severity: 'success',
         summary: t('success'),
-        detail: status === 1 ? t('order.acceptSuccess') : t('order.cancelSuccess'),
+        detail: successMessage,
         life: 3000
       })
     })
@@ -98,7 +193,7 @@ const changeStatus = (id, status) => {
       toast.add({
         severity: 'error',
         summary: t('error'),
-        detail: status === 1 ? t('order.acceptError') : t('order.cancelError'),
+        detail: errorMessage,
         life: 3000
       })
     })
@@ -283,43 +378,77 @@ onMounted(() => {
                 {{ slotProps.data.created_at }}
               </template>
             </Column>
-            <Column :header="t('order.actions')" header-style="min-width:18rem;">
+            <Column :header="t('order.actions')" header-style="min-width:20rem;">
               <template #body="slotProps">
-                <Button
-                  v-can="'edit orders'"
-                  icon="pi pi-eye"
-                  class="p-detail"
-                  @click="openEdit(slotProps.data.id)"
-                  v-tooltip.top="t('edit')"
-                />
-                <Button
-                  v-can="'delete orders'"
-                  icon="pi pi-trash mx-2"
-                  class="p-delete"
-                  @click="confirmDelete(slotProps.data.id)"
-                  v-tooltip.top="t('delete')"
-                />
-                <Button
-                  v-can="'edit orders'"
-                  icon="pi pi-check"
-                  class="p-detail"
-                  @click="changeStatus(slotProps.data.id, 1)"
-                  v-tooltip.top="t('order.accept')"
-                />
-                <Button
-                  v-can="'edit orders'"
-                  icon="pi pi-times"
-                  class="p-delete"
-                  @click="changeStatus(slotProps.data.id, 5)"
-                  v-tooltip.top="t('order.cancel')"
-                />
+                <div class="flex gap-1">
+                  <!-- View Button - Always enabled -->
                   <Button
-                  v-can="'edit orders'"
-                  icon="pi pi-truck"
-                  class="p-detail"
-                  @click="changeStatus(slotProps.data.id, 3)"
-                  v-tooltip.top="t('order.delivered')"
-                />
+                    v-can="'edit orders'"
+                    icon="pi pi-eye"
+                    class=" p-detail"
+                    :disabled="!canPerformAction(slotProps.data, 'view')"
+                    @click="openEdit(slotProps.data.id)"
+                    v-tooltip.top="t('view')"
+                  />
+
+                  <!-- Delete Button - Only for status 1 (pending/active) -->
+                  <Button
+
+                    icon="pi pi-trash"
+                    class=" p-delete"
+                    :disabled="!canPerformAction(slotProps.data, 'delete')"
+                    @click="confirmDelete(slotProps.data.id)"
+                    v-tooltip.top="t('delete')"
+                  />
+
+                  <!-- Accept/Confirm Button - Only for status 1 (pending/active) -->
+                  <Button
+                    v-can="'edit orders'"
+                    :icon="slotProps.data.status === 1 ? 'pi pi-check' : 'pi pi-check-circle'"
+                    :class="[
+                      'p-detai',
+                      slotProps.data.status === 1 ? 'p-detai' : 'p-detai',
+                      'p-detail'
+                    ]"
+                    :disabled="!canPerformAction(slotProps.data, 'accept')"
+                    @click="changeStatus(slotProps.data.id, 2, slotProps.data.status)"
+                    v-tooltip.top="getActionLabel(slotProps.data, 'accept')"
+                  />
+
+                  <!-- Cancel/Reject Button - For status 1 & 2 -->
+                  <Button
+                    v-can="'edit orders'"
+                    :icon="slotProps.data.status === 1 ? 'pi pi-times' : 'pi pi-times-circle'"
+                    :class="[
+                      'p-delete',
+                      slotProps.data.status === 1 ? 'p-delete' : 'p-delete',
+                      'p-delete'
+                    ]"
+                    :disabled="!canPerformAction(slotProps.data, 'cancel')"
+                    @click="changeStatus(slotProps.data.id, 5, slotProps.data.status)"
+                    v-tooltip.top="getActionLabel(slotProps.data, 'cancel')"
+                  />
+
+                  <!-- Deliver Button - Only for status 2 (waiting) -->
+                  <Button
+                    v-can="'edit orders'"
+                    icon="pi pi-truck"
+                    class="p-detail"
+                    :disabled="!canPerformAction(slotProps.data, 'deliver')"
+                    @click="changeStatus(slotProps.data.id, 3, slotProps.data.status)"
+                    v-tooltip.top="t('order.deliver')"
+                  />
+
+                  <!-- Return Button - Only for status 3 (delivered) -->
+                  <Button
+                    v-can="'edit orders'"
+                    icon="pi pi-undo"
+                    class=" p-detail"
+                    :disabled="!canPerformAction(slotProps.data, 'return')"
+                    @click="changeStatus(slotProps.data.id, 4, slotProps.data.status)"
+                    v-tooltip.top="t('order.return')"
+                  />
+                </div>
               </template>
             </Column>
 
@@ -581,6 +710,7 @@ onMounted(() => {
 label {
   margin-bottom: 10px !important;
 }
+
 :deep(.p-datatable) {
   font-size: 0.9rem;
 
@@ -650,6 +780,18 @@ label {
   }
 }
 
+/* Action buttons styling */
+:deep(.p-button.p-button-rounded) {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0 0.125rem;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
 @media screen and (max-width: 960px) {
   :deep(.p-datatable) {
     overflow-x: auto;
@@ -667,6 +809,12 @@ label {
     .p-paginator-right-content {
       order: 1;
     }
+  }
+
+  /* Stack action buttons on mobile */
+  :deep(.flex.gap-1) {
+    flex-wrap: wrap;
+    gap: 0.25rem;
   }
 }
 </style>

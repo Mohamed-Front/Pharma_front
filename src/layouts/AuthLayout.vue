@@ -11,6 +11,7 @@
             <template #tabs>
               <va-tab name="login">{{ t('auth.login') }}</va-tab>
               <va-tab name="signup">{{ t('createNewAccount') }}</va-tab>
+              <va-tab name="password-request">{{ t('passwordRequests') }}</va-tab>
               <va-tab name="inquiry">{{ t('inquiry.inquiry') }}</va-tab>
             </template>
           </va-tabs>

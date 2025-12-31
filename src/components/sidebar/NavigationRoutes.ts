@@ -78,6 +78,14 @@ const navigationRoutes = {
         icon: 'business'
       }
     },
+      {
+      name: 'admin-password-request',
+      displayName: 'navigation.password_request',
+      meta: {
+        icon: 'business'
+      }
+    },
+
     {
       name: 'scientific-structur',
       displayName: 'navigation.scientific_structur',
@@ -101,6 +109,15 @@ const navigationRoutes = {
         icon: 'warehouse'
       },
     },
+     {
+      name: 'city',
+      displayName: 'navigation.city',
+      show: ['list cities'],
+      meta: {
+        icon: 'business'
+      },
+    },
+
     {
       name: 'admin-report',
       displayName: 'admin_report',

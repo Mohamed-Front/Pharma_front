@@ -58,8 +58,8 @@
               :class="{ 'border-red-500': errors.city }"
             >
               <option value="" disabled selected>اختر المدينة</option>
-              <option v-for="city in cities" :key="city.Governorate_en" :value="city.Governorate_en" >
-                {{ city.Governorate_ar }} ({{ city.Governorate_en }})
+              <option v-for="city in cities" :key="city.name" :value="city.name" >
+                {{ city.name }}
               </option>
             </select>
             <small class="text-red-500 mt-1 block" v-if="errors.city">{{ errors.city }}</small>
@@ -188,24 +188,20 @@
         </div>
 
         <!-- Location Information -->
-        <div class="space-y-6">
+        <div v-if="iframeSrc" class="space-y-6">
           <h4 class="text-xl font-semibold text-gray-800 bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">
             {{ $t('auth.location_information') }}
           </h4>
-          <div class="relative">
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{ $t('auth.location') }}</label>
-            <GoogleMap
-              @click="handleMapClick"
-              style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden;"
-              :center="{ lat: form.lat ? parseFloat(form.lat) : 33.5158, lng: form.long ? parseFloat(form.long) : 36.2939 }"
-              :zoom="14"
-              class="shadow-md"
-            >
-              <Marker
-                v-if="form.lat && form.long"
-                :options="{ position: { lat: parseFloat(form.lat), lng: parseFloat(form.long) } }"
-              />
-            </GoogleMap>
+           <div class="w-full h-80 rounded-lg overflow-hidden shadow-md">
+              <iframe
+                :src="iframeSrc"
+                width="100%"
+                height="100%"
+                style="border:0;"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+
 
           </div>
         </div>
@@ -377,7 +373,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive ,onMounted} from 'vue'
 import { useI18n } from 'vue-i18n'
 import { GoogleMap, Marker } from 'vue3-google-map'
 import axios from 'axios'
@@ -390,22 +386,13 @@ const router = useRouter()
 
 // Cities data
 const cities = ref([
-  { Governorate_ar: 'دمشق', Governorate_en: 'Damascus', Latitude: 33.5158, Longitude: 36.2939, Status: 'active' },
-  { Governorate_ar: 'دمشق ريف', Governorate_en: 'Rif Dimashq', Latitude: 33.5719, Longitude: 36.402, Status: 'active' },
-  { Governorate_ar: 'حلب', Governorate_en: 'Aleppo', Latitude: 36.2019, Longitude: 37.1612, Status: 'not active' },
-  { Governorate_ar: 'حمص', Governorate_en: 'Homs', Latitude: 34.7308, Longitude: 36.709, Status: 'not active' },
-  { Governorate_ar: 'حماة', Governorate_en: 'Hama', Latitude: 35.1318, Longitude: 36.7578, Status: 'not active' },
-  { Governorate_ar: 'إدلب', Governorate_en: 'Idlib', Latitude: 35.9306, Longitude: 36.6339, Status: 'not active' },
-  { Governorate_ar: 'اللاذقية', Governorate_en: 'Latakia', Latitude: 35.5167, Longitude: 35.7833, Status: 'not active' },
-  { Governorate_ar: 'طرطوس', Governorate_en: 'Tartus', Latitude: 34.889, Longitude: 35.8866, Status: 'not active' },
-  { Governorate_ar: 'الرقة', Governorate_en: 'Raqqa', Latitude: 35.95, Longitude: 39.0167, Status: 'not active' },
-  { Governorate_ar: 'دير الزور', Governorate_en: 'Deir ez-Zor', Latitude: 35.3333, Longitude: 40.15, Status: 'not active' },
-  { Governorate_ar: 'الحسكة', Governorate_en: 'Al-Hasakah', Latitude: 36.502, Longitude: 40.747, Status: 'not active' },
-  { Governorate_ar: 'درعا', Governorate_en: 'Daraa', Latitude: 32.6189, Longitude: 36.1029, Status: 'not active' },
-  { Governorate_ar: 'السويداء', Governorate_en: 'As-Suwayda', Latitude: 32.708, Longitude: 36.569, Status: 'not active' },
-  { Governorate_ar: 'القنيطرة', Governorate_en: 'Quneitra', Latitude: 33.125, Longitude: 35.823, Status: 'not active' }
-])
 
+])
+ const Getcities=()=>{
+  axios.get(`api/city?type=pharmacy&status=1`).then((res)=>{
+    cities.value=res.data.data
+  })
+ }
 // Form data
 const form = reactive({
   name: '',
@@ -427,6 +414,9 @@ const form = reactive({
   lat: '',
   long: '',
   location_link: ''
+})
+onMounted(() => {
+  Getcities()
 })
 
 // Error messages
@@ -534,6 +524,13 @@ const handleDragOver = (type: 'practice_certificate' | 'pharmacy_logo') => {
 const handleDragLeave = (type: 'practice_certificate' | 'pharmacy_logo') => {
   isDragging.value[type] = false
 }
+const iframeSrc = computed(() => {
+  if (form.location_link) {
+    // Google Maps embed URL from the simple q=lat,lng link
+     const embed = `https://www.google.com/maps?q=${form.lat},${form.long}&hl=es;z=14&output=embed`
+    return embed
+  }
+})
 
 const onImageUpload = (event: Event | DragEvent, type: 'practice_certificate' | 'pharmacy_logo') => {
   const file = (event as DragEvent).dataTransfer?.files?.[0] || (event.target as HTMLInputElement).files?.[0]
@@ -592,11 +589,11 @@ const handleMapClick = (event: any) => {
 
 // Update map location when city is selected
 const updateMapLocation = () => {
-  const selectedCity = cities.value.find(city => city.Governorate_en === form.city)
+  const selectedCity = cities.value.find(city => city.name === form.city)
   if (selectedCity) {
-    form.lat = selectedCity.Latitude.toString()
-    form.long = selectedCity.Longitude.toString()
-    form.location_link = `https://www.google.com/maps?q=${selectedCity.Latitude},${selectedCity.Longitude}`
+    form.lat = selectedCity.lat.toString()
+    form.long = selectedCity.long.toString()
+    form.location_link = `https://www.google.com/maps?q=${selectedCity.lat},${selectedCity.long}`
   }
 }
 

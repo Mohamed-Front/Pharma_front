@@ -101,9 +101,9 @@
               class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all duration-300 font-[Inter]"
               :class="{ 'border-red-500': errors.city }"
             >
-              <option value="" disabled selected>{{ $t('profile.select_city') }}</option>
-              <option v-for="city in activeCities" :key="city.Governorate_en" :value="city.Governorate_en">
-                {{ city.Governorate_ar }} ({{ city.Governorate_en }})
+              <option value="" disabled selected>اختر المدينة</option>
+              <option v-for="city in cities" :key="city.name" :value="city.name" >
+                {{ city.name }}
               </option>
             </select>
             <small class="text-red-500 mt-1 block" v-if="errors.city">{{ errors.city }}</small>
@@ -149,20 +149,17 @@
           <h4 class="text-xl font-semibold text-gray-800 bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent font-[Inter]">
             {{ $t('profile.location_information') }}
           </h4>
-          <div class="relative">
-            <label class="block text-sm font-medium text-gray-700 mb-1 font-[Inter]">{{ $t('profile.location') }}</label>
-            <GoogleMap
-              @click="handleMapClick"
-              style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden;"
-              :center="{ lat: profile.lat ? parseFloat(profile.lat) : 33.5158, lng: profile.long ? parseFloat(profile.long) : 36.2939 }"
-              :zoom="14"
-              class="shadow-md"
-            >
-              <Marker
-                v-if="profile.lat && profile.long"
-                :options="{ position: { lat: parseFloat(profile.lat), lng: parseFloat(profile.long) } }"
-              />
-            </GoogleMap>
+          <div v-if='iframeSrc' class="w-full h-80 rounded-lg overflow-hidden shadow-md">
+              <iframe
+                :src="iframeSrc"
+                width="100%"
+                height="100%"
+                style="border:0;"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+
+
           </div>
         </div>
 
@@ -288,26 +285,19 @@ const toast = useToast();
 const router = useRouter();
 
 // Cities data
-const cities = ref([
-  { Governorate_ar: 'دمشق', Governorate_en: 'Damascus', Latitude: 33.5158, Longitude: 36.2939, Status: 'active' },
-  { Governorate_ar: 'دمشق ريف', Governorate_en: 'Rif Dimashq', Latitude: 33.5719, Longitude: 36.402, Status: 'active' },
-  { Governorate_ar: 'حلب', Governorate_en: 'Aleppo', Latitude: 36.2019, Longitude: 37.1612, Status: 'active' },
-  { Governorate_ar: 'حمص', Governorate_en: 'Homs', Latitude: 34.7308, Longitude: 36.709, Status: 'active' },
-  { Governorate_ar: 'حماة', Governorate_en: 'Hama', Latitude: 35.1318, Longitude: 36.7578, Status: 'active' },
-  { Governorate_ar: 'إدلب', Governorate_en: 'Idlib', Latitude: 35.9306, Longitude: 36.6339, Status: 'active' },
-  { Governorate_ar: 'اللاذقية', Governorate_en: 'Latakia', Latitude: 35.5167, Longitude: 35.7833, Status: 'active' },
-  { Governorate_ar: 'طرطوس', Governorate_en: 'Tartus', Latitude: 34.889, Longitude: 35.8866, Status: 'active' },
-  { Governorate_ar: 'الرقة', Governorate_en: 'Raqqa', Latitude: 35.95, Longitude: 39.0167, Status: 'active' },
-  { Governorate_ar: 'دير الزور', Governorate_en: 'Deir ez-Zor', Latitude: 35.3333, Longitude: 40.15, Status: 'active' },
-  { Governorate_ar: 'الحسكة', Governorate_en: 'Al-Hasakah', Latitude: 36.502, Longitude: 40.747, Status: 'active' },
-  { Governorate_ar: 'درعا', Governorate_en: 'Daraa', Latitude: 32.6189, Longitude: 36.1029, Status: 'active' },
-  { Governorate_ar: 'السويداء', Governorate_en: 'As-Suwayda', Latitude: 32.708, Longitude: 36.569, Status: 'active' },
-  { Governorate_ar: 'القنيطرة', Governorate_en: 'Quneitra', Latitude: 33.125, Longitude: 35.823, Status: 'active' }
-]);
+const cities = ref([])
+ const Getcities=()=>{
+  axios.get(`api/city?type=warehouse&status=1`).then((res)=>{
+    cities.value=res.data.data
+  })
+ }
 
+onMounted(() => {
+  Getcities()
+})
 // Filter active cities
 const activeCities = computed(() => cities.value.filter(city => city.Status === 'active'));
-
+const defualtelink=ref('')
 // Reactive state
 const orders = ref([]);
 const loading = ref(false);
@@ -344,7 +334,15 @@ const errors = reactive({
   city: '',
   address: '',
 });
-
+const iframeSrc = computed(() => {
+  if (profile.location_link) {
+    // Google Maps embed URL from the simple q=lat,lng link
+     const embed = `https://www.google.com/maps?q=${profile.lat},${profile.long}&hl=es;z=14&output=embed`
+    return embed
+  }else{
+    return defualtelink.value
+  }
+})
 // Fetch profile data
 const fetchProfile = async () => {
   try {
@@ -355,6 +353,7 @@ const fetchProfile = async () => {
       if (response.data.data.media && response.data.data.media.length > 0) {
         profile.pharmacy_logo = response.data.data.media[0].url;
       }
+      defualtelink.value = `https://www.google.com/maps?q=${response.data.data.lat},${response.data.data.long}&hl=es;z=14&output=embed`
     } else {
       toast.add({
         severity: 'warn',
@@ -537,13 +536,14 @@ const handleMapClick = (event: any) => {
 
 // Update map location when city is selected
 const updateMapLocation = () => {
-  const selectedCity = cities.value.find(city => city.Governorate_en === profile.city);
+  const selectedCity = cities.value.find(city => city.name === profile.city)
   if (selectedCity) {
-    profile.lat = selectedCity.Latitude.toString();
-    profile.long = selectedCity.Longitude.toString();
-    profile.location_link = `https://www.google.com/maps?q=${selectedCity.Latitude},${selectedCity.Longitude}`;
+    profile.lat = selectedCity.lat.toString()
+    profile.long = selectedCity.long.toString()
+    profile.location_link = `https://www.google.com/maps?q=${selectedCity.lat},${selectedCity.long}`
   }
-};
+}
+
 
 // Form submission
 const submitForm = async () => {

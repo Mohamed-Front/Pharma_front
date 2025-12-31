@@ -262,8 +262,11 @@ console.log(localStorage.appLang)
 if( localStorage.appLang == 'ar')
 
 document.body.dir ="rtl"
-else
-document.body.dir ="ltr"
+else{
+  localStorage.appLang = 'en'
+  document.body.dir ="ltr"
+}
+
 app.directive('can', (el, binding, vnode) =>{
   // console.log(JSON.parse(localStorage.getItem('permissions')))
   if (! JSON.parse(localStorage.getItem('userPermissions'))
